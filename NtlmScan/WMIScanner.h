@@ -10,7 +10,7 @@ class WMIScanner :
 {
 public:
 	WMIScanner();
-	virtual void scan(string ipAddr);
+	virtual void scan(string& ipAddr);
 	~WMIScanner();
 };
 

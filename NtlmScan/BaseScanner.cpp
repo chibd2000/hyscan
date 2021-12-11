@@ -10,6 +10,6 @@ BaseScanner::~BaseScanner()
 {
 }
 
-void BaseScanner::scan(string ipAddr){
+void BaseScanner::scan(string& ipAddr){
 	cout << "BaseScanner::scan" << endl;
 }

@@ -7,7 +7,7 @@ class SMBScanner :
 {
 public:
 	SMBScanner();
-	virtual void scan(string ipAddr);
+	virtual void scan(string& ipAddr);
 	~SMBScanner();
 };
 

@@ -39,8 +39,6 @@ public:
 	char MINOR_VERSION;
 	char BUILD_NUMBER[2];
 	int Revision;
-
-
 };
 
 

@@ -80,7 +80,11 @@ int TcpClient::connectSocket(SOCKET &conSock, std::string ip, int port)
 	inet_pton(AF_INET, ip.c_str(), (void*)&addr);
 	hostAddr.sin_addr = addr;
 	// std::cout << "ip(网络字节序):" << addr.S_un.S_addr << std::endl;
+#ifdef DEBUG
 	cout << "[+] scanning target ip =========================> " << ip.c_str() << endl;
+#else
+	/*null*/
+#endif
 
 	// 向服务器提出连接请求
 	int err = connect(conSock, (sockaddr*)&hostAddr, sizeof(sockaddr));

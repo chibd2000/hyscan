@@ -7,6 +7,7 @@
 #include <timezoneapi.h>
 #include <vector>
 #include <mutex>
+#include <regex>
 #include "NtlmInfo.h"
 #pragma comment(lib,"ws2_32.lib")
 using namespace std;

@@ -10,7 +10,7 @@ class BaseScanner
 {
 public:
 	BaseScanner();
-	virtual void scan(string ipAddr);
+	virtual void scan(string& ipAddr);
 	~BaseScanner();
 };
 

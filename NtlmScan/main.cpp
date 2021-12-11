@@ -7,6 +7,8 @@
 #include "SMBScanner.h"
 #include "Tools.h"
 
+static unsigned char g_szBuffer[5];
+
 void getBanner(){
 	cout << "[+] Welcome from HengGe Team :)" << endl;
 }
@@ -19,6 +21,7 @@ void getConsole(int argc, char* argv[]){
 void threadFunc(BaseScanner& scanner, string ipAddr)
 {
 	scanner.scan(ipAddr);
+	Sleep(0);
 }
 
 void getResult(){
@@ -32,23 +35,37 @@ void getResult(){
 	}
 }
 
-static unsigned char b[5];
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[]){	
 	/* write in 2021.12.09 15.43 @zpchcbd for WMINtlmScan study*/
+	
 	vector<thread> threadList = vector<thread>();
 	getBanner();
 	// getConsole(argc, argv);
 	unsigned int ip;
 	unsigned int mask;
-	if (argc == 3){
-		if (strcmp("-c", argv[1]) == 0){
-			sscanf(argv[2], "%hhu.%hhu.%hhu.%hhu/%hhu", &b[0], &b[1], &b[2], &b[3], &b[4]);
-			if (b[4] > 32) {
+	if (argc == 4){
+		if (strcmp("wmiscan", argv[1]) == 0 && strcmp("-c", argv[2]) == 0){
+			sscanf(argv[3], "%hhu.%hhu.%hhu.%hhu/%hhu", &g_szBuffer[0], &g_szBuffer[1], &g_szBuffer[2], &g_szBuffer[3], &g_szBuffer[4]);
+			if (g_szBuffer[4] > 32) 
 				return -1;
-			}
-			ip = (b[0] << 24UL) | (b[1] << 16UL) | (b[2] << 8UL) | (b[3]);
-			mask = (0xFFFFFFFFUL << (32 - b[4])) & 0xFFFFFFFFUL;
-			unsigned int startIp = ip & mask;;
+			ip = (g_szBuffer[0] << 24UL) | (g_szBuffer[1] << 16UL) | (g_szBuffer[2] << 8UL) | (g_szBuffer[3]);
+			mask = (0xFFFFFFFFUL << (32 - g_szBuffer[4])) & 0xFFFFFFFFUL;
+			unsigned int startIp = ip & mask;
+			unsigned int lastIp = startIp | ~mask; //   111 1111 1111 0000  |  0000 0000 0000 1111	
+			WMIScanner scanner = WMIScanner();
+			for (unsigned int i = startIp; i <= lastIp; i++)
+				threadList.push_back(thread(threadFunc, scanner, int2ip(i)));
+			for (unsigned int i = 0; i < threadList.size(); i++)
+				threadList[i].join();
+		}
+		else if (strcmp("-c", argv[2]) == 0 && strcmp("oxidscan", argv[1]) == 0)
+		{
+			sscanf(argv[3], "%hhu.%hhu.%hhu.%hhu/%hhu", &g_szBuffer[0], &g_szBuffer[1], &g_szBuffer[2], &g_szBuffer[3], &g_szBuffer[4]);
+			if (g_szBuffer[4] > 32)
+				return -1;
+			ip = (g_szBuffer[0] << 24UL) | (g_szBuffer[1] << 16UL) | (g_szBuffer[2] << 8UL) | (g_szBuffer[3]);
+			mask = (0xFFFFFFFFUL << (32 - g_szBuffer[4])) & 0xFFFFFFFFUL;
+			unsigned int startIp = ip & mask;
 			unsigned int lastIp = startIp | ~mask; //   111 1111 1111 0000  |  0000 0000 0000 1111	
 			WMIScanner scanner = WMIScanner();
 			for (unsigned int i = startIp; i <= lastIp; i++)

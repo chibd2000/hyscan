@@ -12,7 +12,7 @@ SMBScanner::~SMBScanner()
 
 
 
-void SMBScanner::scan(string ipAddr){
+void SMBScanner::scan(string& ipAddr){
 	cout << "SMBScanner::scan" << endl;
 	
 }

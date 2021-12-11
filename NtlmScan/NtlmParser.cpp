@@ -13,7 +13,7 @@ NtlmParser::~NtlmParser()
 
 
 void NtlmParser::parser(string ntlmInfoString, NtlmInfo* p1NtlmInfo){
-	SYSTEMTIME sysTime;
+	//SYSTEMTIME sysTime;
 	wstring wStr;
 	int offset = 0;
 	int size = 0;

@@ -14,19 +14,28 @@ WMIScanner::~WMIScanner()
 
 }
 
-void WMIScanner::scan(string ipAddr){
+void WMIScanner::scan(string& ipAddr){
 	SOCKET clientSocket;
 	TcpClient tcpClient = TcpClient();
 	string receiveData;
-	tcpClient.initWinSock();
-	tcpClient.createSocket(clientSocket);
-	tcpClient.connectSocket(clientSocket, ipAddr.c_str(), WMIPORT);
-	int t = tcpClient.sendData(clientSocket, string((char*)NTLMSSP_NEGOTIATE, sizeof(NTLMSSP_NEGOTIATE) / sizeof(NTLMSSP_NEGOTIATE[0])));
-	if (t == -1)
-		return;
-	tcpClient.receiveData(clientSocket, receiveData);
-	NtlmInfo ntlmInfo;
-	ZeroMemory(&ntlmInfo, sizeof(NtlmInfo));
-	NtlmParser::parser(receiveData, &ntlmInfo);
-	vNtlmInfo.push_back(ntlmInfo);
+	if (!tcpClient.initWinSock())
+	{
+		if (!tcpClient.createSocket(clientSocket))
+		{
+			if (!tcpClient.connectSocket(clientSocket, ipAddr.c_str(), WMIPORT))
+			{
+				if (!tcpClient.sendData(clientSocket, string((char*)NTLMSSP_NEGOTIATE, sizeof(NTLMSSP_NEGOTIATE) / sizeof(NTLMSSP_NEGOTIATE[0]))))
+				{
+					if (!tcpClient.receiveData(clientSocket, receiveData))
+					{
+						NtlmInfo ntlmInfo;
+						ZeroMemory(&ntlmInfo, sizeof(NtlmInfo));
+						NtlmParser::parser(receiveData, &ntlmInfo);
+						closesocket(clientSocket);
+						vNtlmInfo.push_back(ntlmInfo);
+					}
+				}
+			}
+		}
+	}
 }

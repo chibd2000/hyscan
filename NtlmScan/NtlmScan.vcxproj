@@ -56,9 +56,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -72,6 +73,7 @@
     <ClInclude Include="public.h" />
     <ClInclude Include="SMBScanner.h" />
     <ClInclude Include="TcpClient.h" />
+    <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="Tools.h" />
     <ClInclude Include="WMIScanner.h" />
   </ItemGroup>
@@ -85,6 +87,7 @@
     <ClCompile Include="public.cpp" />
     <ClCompile Include="SMBScanner.cpp" />
     <ClCompile Include="TcpClient.cpp" />
+    <ClCompile Include="ThreadPool.cpp" />
     <ClCompile Include="Tools.cpp" />
     <ClCompile Include="WMIScanner.cpp" />
   </ItemGroup>
