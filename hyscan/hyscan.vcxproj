@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{062EF975-EC8D-4A48-A70A-2E6E273A6444}</ProjectGuid>
+    <RootNamespace>hyscan</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="BaseScanner.h" />
+    <ClInclude Include="KerberosScanner.h" />
+    <ClInclude Include="LdapScanner.h" />
+    <ClInclude Include="m_base_api.h" />
+    <ClInclude Include="m_http_api.h" />
+    <ClInclude Include="m_kerberos_api.h" />
+    <ClInclude Include="m_ldap_api.h" />
+    <ClInclude Include="m_logger.h" />
+    <ClInclude Include="m_socket_api.h" />
+    <ClInclude Include="m_wmi_api.h" />
+    <ClInclude Include="m_wnet_api.h" />
+    <ClInclude Include="NtlmInfo.h" />
+    <ClInclude Include="NtlmParser.h" />
+    <ClInclude Include="OXIDScanner.h" />
+    <ClInclude Include="public.h" />
+    <ClInclude Include="ScannerFactory.h" />
+    <ClInclude Include="SMBScanner.h" />
+    <ClInclude Include="ThreadPool.h" />
+    <ClInclude Include="Tools.h" />
+    <ClInclude Include="UserInfo.h" />
+    <ClInclude Include="WinrmScanner.h" />
+    <ClInclude Include="WMIScanner.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BaseScanner.cpp" />
+    <ClCompile Include="KerberosScanner.cpp" />
+    <ClCompile Include="LdapScanner.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="m_base_api.cpp" />
+    <ClCompile Include="m_http_api.cpp" />
+    <ClCompile Include="m_kerberos_api.cpp" />
+    <ClCompile Include="m_ldap_api.cpp" />
+    <ClCompile Include="m_logger.cpp" />
+    <ClCompile Include="m_socket_api.cpp" />
+    <ClCompile Include="m_wmi_api.cpp" />
+    <ClCompile Include="m_wnet_api.cpp" />
+    <ClCompile Include="NtlmInfo.cpp" />
+    <ClCompile Include="NtlmParser.cpp" />
+    <ClCompile Include="OXIDScanner.cpp" />
+    <ClCompile Include="public.cpp" />
+    <ClCompile Include="ScannerFactory.cpp" />
+    <ClCompile Include="SMBScanner.cpp" />
+    <ClCompile Include="ThreadPool.cpp" />
+    <ClCompile Include="Tools.cpp" />
+    <ClCompile Include="UserInfo.cpp" />
+    <ClCompile Include="WinrmScanner.cpp" />
+    <ClCompile Include="WMIScanner.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

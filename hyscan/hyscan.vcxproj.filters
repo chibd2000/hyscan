@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="local modules">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="local modules\api modules">
+      <UniqueIdentifier>{1f0620a7-5fd6-489c-9427-77ab0407bafd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="local modules\common modules">
+      <UniqueIdentifier>{959aaf09-83dd-4716-a283-04f826d395c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="local modules\scanner modules">
+      <UniqueIdentifier>{d2d741e3-2d85-45e2-817e-68fdf8cc3bfc}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="m_http_api.h">
+      <Filter>local modules\api modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_base_api.h">
+      <Filter>local modules\api modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_kerberos_api.h">
+      <Filter>local modules\api modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_ldap_api.h">
+      <Filter>local modules\api modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_socket_api.h">
+      <Filter>local modules\api modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_wmi_api.h">
+      <Filter>local modules\api modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_wnet_api.h">
+      <Filter>local modules\api modules</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseScanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="KerberosScanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="LdapScanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="OXIDScanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="SMBScanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="ScannerFactory.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="WinrmScanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="WMIScanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="UserInfo.h">
+      <Filter>local modules\common modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Tools.h">
+      <Filter>local modules\common modules</Filter>
+    </ClInclude>
+    <ClInclude Include="NtlmParser.h">
+      <Filter>local modules\common modules</Filter>
+    </ClInclude>
+    <ClInclude Include="public.h">
+      <Filter>local modules\common modules</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>local modules\common modules</Filter>
+    </ClInclude>
+    <ClInclude Include="NtlmInfo.h">
+      <Filter>local modules\common modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_logger.h">
+      <Filter>local modules\common modules</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="m_http_api.cpp">
+      <Filter>local modules\api modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_base_api.cpp">
+      <Filter>local modules\api modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_kerberos_api.cpp">
+      <Filter>local modules\api modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_ldap_api.cpp">
+      <Filter>local modules\api modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_wnet_api.cpp">
+      <Filter>local modules\api modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_wmi_api.cpp">
+      <Filter>local modules\api modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_socket_api.cpp">
+      <Filter>local modules\api modules</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseScanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="KerberosScanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="LdapScanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="OXIDScanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="SMBScanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="WinrmScanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="WMIScanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_logger.cpp">
+      <Filter>local modules\common modules</Filter>
+    </ClCompile>
+    <ClCompile Include="NtlmInfo.cpp">
+      <Filter>local modules\common modules</Filter>
+    </ClCompile>
+    <ClCompile Include="NtlmParser.cpp">
+      <Filter>local modules\common modules</Filter>
+    </ClCompile>
+    <ClCompile Include="public.cpp">
+      <Filter>local modules\common modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ThreadPool.cpp">
+      <Filter>local modules\common modules</Filter>
+    </ClCompile>
+    <ClCompile Include="UserInfo.cpp">
+      <Filter>local modules\common modules</Filter>
+    </ClCompile>
+    <ClCompile Include="ScannerFactory.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Tools.cpp">
+      <Filter>local modules\common modules</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
