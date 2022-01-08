@@ -1,11 +1,6 @@
 #include "public.h"
-#include "Tools.h"
 #include "NtlmInfo.h"
 #include "NtlmParser.h"
-#include "WMIScanner.h"
-#include "SMBScanner.h"
-#include "WinrmScanner.h"
-#include "OXIDScanner.h"
 #include "m_ldap_api.h"
 #include "ScannerFactory.h"
 // #include "ThreadPool.h"
@@ -92,10 +87,9 @@ int main(int argc, char* argv[]){
 		cout << e.what() << endl;
 	}*/
 
-	
+		
 	ScannerFactory* scannerFactory = new ScannerFactory();
 	BaseScanner* scanner = nullptr;
-
 	
 	if (argc == 4){
 		if (strcmp("wmi::scan", argv[1]) == 0 && strcmp("-c", argv[2]) == 0){
@@ -119,7 +113,7 @@ int main(int argc, char* argv[]){
 		}
 	}
 
-	getResult();
+	// getResult();
 
 	/*OXID TEST
 	OXIDScanner scanner = OXIDScanner();
@@ -143,10 +137,9 @@ int main(int argc, char* argv[]){
 	printf("%x\n%x\n%x\n%x\n", m1, m2, m3, m4);
 	*/
 	
-	/*
-	LDAP_API ldapTest("administrator", "admin@123", "192.168.4.11", "hengge.com");
-	ldapTest.searchConstrainedDelegation();*/
 	
+	LDAP_API ldapTest("192.168.4.11", "hengge.com");
+	ldapTest.updateResourceBasedConstrainedDelegation();
 	
 
 	return 0;

@@ -8,10 +8,10 @@ private:
 	string password;
 public:
 	m_kerberos_api();
-	~m_kerberos_api();
+	~m_kerberos_api(); 
 	void getTgt();
 	void getST();
-	void getTgtTicket();
+	void getTgtTicket(); 
 	void getStTicket();
 };
 #endif 

@@ -3,11 +3,12 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <WS2tcpip.h>
 #include <iostream>
+#include <sddl.h>
 #include <thread>
 #include <timezoneapi.h>
 #include <vector>
 #include <mutex>
-#include <regex>
+#include <string>
 #include <windows.h>
 #pragma comment(lib,"ws2_32.lib")
 using namespace std;

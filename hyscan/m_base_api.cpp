@@ -1,6 +1,5 @@
 #include "m_base_api.h"
 
-
 MYAPI::MYAPI()
 {
 
@@ -61,13 +60,32 @@ string MYAPI::ConvertToStringSid(const unsigned char* bsid, const int len){
 	return sid;
 }
 
+// sid -> username
 string MYAPI::sid2user(PSID pSid, LPCTSTR lpSystemName){
 	SID_NAME_USE sidNameUse = SidTypeUser;
 	TCHAR szUserBuffer[64] = { 0 };
 	TCHAR pRefDomainName[64] = { 0 };
-	DWORD cbName = _MAX_PATH + 1;
-	DWORD cbRefDomainName = _MAX_PATH + 1;
+	DWORD cbName = MAX_PATH;
+	DWORD cbRefDomainName = MAX_PATH;
 	if (LookupAccountSid(NULL, pSid, szUserBuffer, &cbName, pRefDomainName, &cbRefDomainName, &sidNameUse))
 		return string(szUserBuffer);
 	return "(null)";
+}
+
+// username -> sid
+string MYAPI::getCurrentUserSid(){
+	TCHAR userName[MAX_PATH] = "";
+	DWORD dwNameSize = sizeof(userName);
+	PCHAR szSid;
+
+	SID_NAME_USE sidNameUse;
+	TCHAR szUserSID[MAX_PATH] = "";
+	TCHAR szDomainName[MAX_PATH] = "";
+	DWORD dwSidSize = MAX_PATH;
+	DWORD dwDomainNameSize = MAX_PATH;
+
+	GetUserName(userName, &dwNameSize);
+	LookupAccountName(NULL, userName, szUserSID, &dwSidSize, szDomainName, &dwDomainNameSize, &sidNameUse);
+	ConvertSidToStringSid(szUserSID, &szSid);
+	return string(szSid);
 }

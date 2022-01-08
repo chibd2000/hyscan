@@ -8,5 +8,6 @@ public:
 	~MYAPI();
 	string ConvertToStringSid(const unsigned char* bsid, const int len);
 	string sid2user(PSID Sid, LPCTSTR lpSystemName);
+	string getCurrentUserSid();
 };
 #endif
