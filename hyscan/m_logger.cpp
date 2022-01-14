@@ -22,15 +22,11 @@ m_logger* m_logger::getLogger(){
 	return m_logger::pLogger;
 }
 
-void m_logger::debug(){
-
+void m_logger::info(string logInfo){
+	saveLog("[+] ", logInfo);
 }
 
-void m_logger::info(){
-
-}
-
-void m_logger::saveLog(){
+void m_logger::saveLog(string tip, string logInfo){
 	m_logger::loggerMutex.lock();
 	
 	m_logger::loggerMutex.unlock();

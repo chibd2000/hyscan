@@ -8,12 +8,12 @@ class TcpClient
 public:
 	TcpClient();
 	~TcpClient();
-	int initWinSock();
-	int createSocket(SOCKET &listenerSocket);
-	int connectSocket(SOCKET &conSock, std::string ip, int port);
-	int sendData(SOCKET &clientSock, std::string &packetData);
-	int receiveData(SOCKET &clientSock, std::string &packetData, int* packetSize);
+	DWORD initWinSock();
+	DWORD createSocket(SOCKET& listenerSocket);
+	DWORD connectSocket(SOCKET& conSock, string ip, int port);
+	DWORD sendData(SOCKET& clientSock, string& packetData);
+	DWORD receiveData(SOCKET& clientSock, string& packetData, int* packetSize);
 private:
-	int socketTimeOut;
+	DWORD socketTimeOut;
 };
 #endif

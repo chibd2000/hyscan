@@ -128,7 +128,7 @@ vector<string> split(const string& str, const string& delim) {
 	return vString;
 }
 
-std::u16string utf8toUtf16le(const string& u8str, bool addbom, bool* ok)
+std::u16string utf82Utf16(const string& u8str, bool addbom, bool* ok)
 {
 	u16string u16str;
 	u16str.reserve(u8str.size());
@@ -207,3 +207,32 @@ std::u16string utf8toUtf16le(const string& u8str, bool addbom, bool* ok)
 
 	return u16str;
 }
+/*
+string octet2String(const char * src_in, int size)
+{
+	if (src_in[0] == 0x04)
+	{
+		if ((int)src_in[1] <128)
+		{
+			return string(src_in + 2, src_in[1]);
+		}
+		else
+		{
+			int count_len = (int)src_in[2] - 0x80;
+			int content_len = 0;
+			for (int i = 0; i<count_len; i++)
+			{
+				count_len =(count_len << 8) + (int)src_in[2 + i];
+			}
+
+			return (content_len > size ? "" : string(src_in + 3, content_len));
+		}
+	}
+	return "";
+}
+
+string string2octet(const char* src_in, int size)
+{
+	
+	return "";
+	}*/

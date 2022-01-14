@@ -1,12 +1,12 @@
 #include "public.h"
-#include "NtlmInfo.h"
-#include "NtlmParser.h"
-#include "m_ldap_api.h"
-#include "ScannerFactory.h"
-// #include "ThreadPool.h"
+#include "m_multi_framework.h"
+// test
 
-static unsigned char g_szBuffer[5];
-vector<NtlmInfo> vNtlmInfo;
+static unsigned char b[5];
+vector<NtlmInfo> vNtlmInfo; // save ntlm type2
+mutex vectorNtlmInfoMutex;
+vector<string> vServerLocalMemberAccount;
+map<string, vector<string>> mServerLoggedAccount;
 
 /*
 后面继续改，先把要的功能稳定实现
@@ -23,6 +23,15 @@ const KUHL_M* mimikatz_modules[] = {
 	&kuhl_m_server,
 };*/
 
+void socketInit(){
+	WSADATA wsaData;
+	if (!WSAStartup(MAKEWORD(2, 2), &wsaData)){
+		cout << "[+] socketInit Successed" << endl;
+	}
+	else{
+		cout << "[-] socketInit Failed" << endl;
+	}
+}
 
 void getBanner(){
 	cout << "[+] Welcome from HengGe Team :)" << endl;
@@ -33,61 +42,87 @@ void getConsole(int argc, char* argv[]){
 	cout << "[+] getConsole..." << endl;
 }
 
-void initThread(){
-	// ThreadPool threadPool(20);
-}
- 
-void threadCheckFunc(BaseScanner* scanner, string ipAddr)
+void testFunc(void* arg)
 {
-	scanner->check(ipAddr);
-	Sleep(0);
+	ThreadPool* threadPool = (ThreadPool*)arg;
+	cout << "[+] TaskSize		----> " << threadPool->getQueueTaskSize() << endl;
+	cout << "[+] workThreadNum	---->" << threadPool->workThreadNum << endl;
+	cout << "[+] aliveThreadNum ----> " << threadPool->aliveThreadNum << endl;
+	Sleep(1000);
 }
 
-void threadPthFunc(BaseScanner* scanner, string ipAddr)
-{
-	scanner->pth(ipAddr);
-	Sleep(0);
+void getIpList(PDWORD startIp, PDWORD lastIp){
+	DWORD ip = (b[0] << 24UL) | (b[1] << 16UL) | (b[2] << 8UL) | (b[3]);
+	DWORD mask = (0xFFFFFFFFUL << (32 - b[4])) & 0xFFFFFFFFUL;
+	*startIp = ip & mask;;
+	*lastIp = *startIp | ~mask; //   111 1111 1111 0000  |  0000 0000 0000 1111
 }
 
-void getResult(){
-	for (unsigned int i = 0; i < vNtlmInfo.size(); i++)
-	{
-		printf("[+] %s\n", vNtlmInfo[i].ipAddr);
-		wprintf(L"\tMACHINE_NAME: %s\n", vNtlmInfo[i].MACHINE_NAME);
-		wprintf(L"\tNETBIOS_COMPUTER_NAME[0]: %s\n", vNtlmInfo[i].NETBIOS_ATTR[0].NETBIOS_COMPUTER_NAME);
-		wprintf(L"\tNETBIOS_COMPUTER_NAME[1]: %s\n", vNtlmInfo[i].NETBIOS_ATTR[1].NETBIOS_COMPUTER_NAME);
-		wprintf(L"\tDNS_COMPUTER_NAME[0]: %s\n", vNtlmInfo[i].DNS_ATTR[0].DNS_COMPUTER_NAME);
-		wprintf(L"\tDNS_COMPUTER_NAME[1]: %s\n", vNtlmInfo[i].DNS_ATTR[1].DNS_COMPUTER_NAME);
-	}
-}
 
 int main(int argc, char* argv[]){	
 	/* write in 2021.12.09 15.43 @zpchcbd for WMINtlmScan study*/
-	
-	vector<thread> threadList = vector<thread>();
-	unsigned int ip = 0;
-	unsigned int mask = 0;
-	unsigned int startIp = 0;
-	unsigned int lastIp = 0;
-	
 	getBanner();
-	// getConsole(argc, argv);
-	/*
-	try{
-		if (argv[3]){
-		sscanf(argv[3], "%hhu.%hhu.%hhu.%hhu/%hhu", &g_szBuffer[0], &g_szBuffer[1], &g_szBuffer[2], &g_szBuffer[3], &g_szBuffer[4]);
-		if (g_szBuffer[4] > 32) return -1;
-		ip = (g_szBuffer[0] << 24UL) | (g_szBuffer[1] << 16UL) | (g_szBuffer[2] << 8UL) | (g_szBuffer[3]);
-		//
-		mask = (0xFFFFFFFFUL << (32 - g_szBuffer[4])) & 0xFFFFFFFFUL;
-		startIp = ip & mask;
-		lastIp = startIp | ~mask; //   111 1111 1111 0000  |  0000 0000 0000 1111
-		}
-	}catch (out_of_range & e){
-		cout << e.what() << endl;
-	}*/
+	
+	/////////////////TEST CODE
+	socketInit();
+	DWORD startIp = 0;
+	DWORD lastIp = 0;
+	ScannerFactory scannerFactory;
+	m_multi_framework threadFrame(100);
 
-		
+	
+	if (argc == 3){
+		if (strcmp("-cidr", argv[1]) == 0){
+			// hyscan -cidr 192.168.0.108/24
+			sscanf(argv[2], "%hhu.%hhu.%hhu.%hhu/%hhu", &b[0], &b[1], &b[2], &b[3], &b[4]);
+			if (b[4] > 32)
+				return -1;
+			getIpList(&startIp, &lastIp);
+			for (UINT32 i = startIp; i <= lastIp; i++){
+				map<string, string>* mArgs = new map<string, string>;
+				mArgs->insert(pair<string, string>("ipAddr", int2ip(i)));
+				threadFrame.addTask(WMIScanner::check, mArgs);
+			}
+		}else if (strcmp("-c", argv[1]) == 0){
+			// hyscan -c 192.168.0.108
+			map<string, string>* mArgs = new map<string, string>;
+			mArgs->insert(pair<string, string>("ipAddr", argv[2]));
+			threadFrame.addTask(WMIScanner::check, mArgs);
+		}else if (strcmp("-weak", argv[1]) == 0){
+			string domainName = "HENGGE";
+			string domainUsername = "hengge\\ske";
+			string domainPassword = "";
+			string personalPassword = "admin@332211";
+			vector<wstring> vComputerMembers = WNET_API::getDomainGroupMembers(L"192.168.4.11", L"Domain Computers");
+			vector<wstring> vControllerMembers = WNET_API::getDomainGroupMembers(L"192.168.4.11", L"Domain Controllers");
+			vector<wstring> vMembers;
+			vMembers.insert(vMembers.end(), vComputerMembers.begin(), vComputerMembers.end());
+			vMembers.insert(vMembers.end(), vControllerMembers.begin(), vControllerMembers.end());
+			DWORD i;
+			for (i = 0; i<vMembers.size(); i++){
+				map<string, string>* mArgs = new map<string, string>;
+				mArgs->insert(pair<string, string>("serverName", wchar2Char((WCHAR*)vMembers[i].c_str())));
+				mArgs->insert(pair<string, string>("domainName", domainName));
+				mArgs->insert(pair<string, string>("domainUsername", domainUsername));
+				mArgs->insert(pair<string, string>("domainPassword", domainPassword));
+				mArgs->insert(pair<string, string>("personalPassword", personalPassword));
+				threadFrame.addTask(WeakScanner::check, mArgs);
+			}
+
+		}else{
+			
+		}
+	}
+	else if (argc == 2){
+		 
+	}
+
+	threadFrame.startWork();
+	threadFrame.getNtlmInfoResult();
+	
+	
+	
+/*
 	ScannerFactory* scannerFactory = new ScannerFactory();
 	BaseScanner* scanner = nullptr;
 	
@@ -112,8 +147,7 @@ int main(int argc, char* argv[]){
 			scanner = scannerFactory->createScanner("OXIDScanner");
 		}
 	}
-
-	// getResult();
+	*/
 
 	/*OXID TEST
 	OXIDScanner scanner = OXIDScanner();
@@ -126,7 +160,6 @@ int main(int argc, char* argv[]){
 	/*WMI TEST
 	WMIScanner scanner = WMIScanner();
 	threadList.push_back(thread(threadPthFunc, scanner, "192.168.4.11"));
-	threadList[0].join();
 	*/
 
 	/*LOGGER SINGLE TEST
@@ -137,10 +170,21 @@ int main(int argc, char* argv[]){
 	printf("%x\n%x\n%x\n%x\n", m1, m2, m3, m4);
 	*/
 	
+	//	LDAP_API ldapTest("administrator", "admin@123","192.168.4.11", "hengge.com");
+	//LDAP_API ldapTest("192.168.4.11", "hengge.com");
+	//	ldapTest.updateResourceBasedConstrainedDelegation("test333");
+	//	ldapTest.searchDomainFileServer();
+	//	ldapTest.searchGPO();
+	//	ldapTest.searchDnsRecord();
+	//	ldapTest.searchTrustDomain();
 	
-	LDAP_API ldapTest("192.168.4.11", "hengge.com");
-	ldapTest.updateResourceBasedConstrainedDelegation();
-	
+	/*
+	WNET_API a;
+	a.enumGroupMembers(L"win-ske-pc");
+	cout << "=================== vServerLocalMemberAccount result ===================" << endl;
+	for_each(begin(vServerLocalMemberAccount), end(vServerLocalMemberAccount), [&](string memberAccount)->void{
+		cout << memberAccount << endl;
+	});*/
 
 	return 0;
 }

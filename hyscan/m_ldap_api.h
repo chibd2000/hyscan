@@ -31,6 +31,23 @@ public:
 	};
 };
 
+class DNS_ADDR{
+public:
+	BYTE address[4];
+};
+
+class DNS_RPC_RECORD {
+public:
+	WORD wDataLength;
+	WORD wType;
+	DWORD dwFlags;
+	DWORD dwSerial;
+	DWORD dwTtlSeconds;
+	DWORD dwReserved;
+	DWORD dwTimeStamp;
+	DNS_ADDR addr;
+};
+
 class LDAP_API : public MYAPI
 {
 private:
@@ -53,16 +70,22 @@ public:
 	DWORD bind();
 	vector<string> LDAP_API::search(string filterGrammar, string dn, PCHAR searchAttabuite[]);
 	void initBaseDn();
+	string addComputer(string pcName, string dn);
+	void addDnsRecord(string dnsName, string ipName);
+	vector<string> getObjectSid(string pcName);
+	string LDAP_API::getComputerDn();
+	void closeLdapConnection();
+	SEC_WINNT_AUTH_IDENTITY_W initLdapCreds();
+	/////////////////////////////
 	void searchConstrainedDelegation();
 	void searchUnconstrainedDelegation();
 	void searchResourceBasedConstrainedDelegation();
-	string addComputer(string pcName);
-	void addDnsRecord();
-	vector<string> getObjectSid(string pcName);
-	void updateResourceBasedConstrainedDelegation();
+	void searchGPO();
+	void searchDomainFileServer();
+	void searchDnsRecord();
+	void searchTrustDomain();
+	void updateResourceBasedConstrainedDelegation(string pcName);
 	void updatePrivilege();
-	void closeLdapConnection();
-	SEC_WINNT_AUTH_IDENTITY_W initLdapCreds();
 };
 
 #endif

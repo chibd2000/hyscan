@@ -45,32 +45,8 @@
     <ClInclude Include="m_wnet_api.h">
       <Filter>local modules\api modules</Filter>
     </ClInclude>
-    <ClInclude Include="BaseScanner.h">
-      <Filter>local modules\scanner modules</Filter>
-    </ClInclude>
-    <ClInclude Include="KerberosScanner.h">
-      <Filter>local modules\scanner modules</Filter>
-    </ClInclude>
-    <ClInclude Include="LdapScanner.h">
-      <Filter>local modules\scanner modules</Filter>
-    </ClInclude>
-    <ClInclude Include="OXIDScanner.h">
-      <Filter>local modules\scanner modules</Filter>
-    </ClInclude>
-    <ClInclude Include="SMBScanner.h">
-      <Filter>local modules\scanner modules</Filter>
-    </ClInclude>
     <ClInclude Include="ScannerFactory.h">
       <Filter>local modules\scanner modules</Filter>
-    </ClInclude>
-    <ClInclude Include="WinrmScanner.h">
-      <Filter>local modules\scanner modules</Filter>
-    </ClInclude>
-    <ClInclude Include="WMIScanner.h">
-      <Filter>local modules\scanner modules</Filter>
-    </ClInclude>
-    <ClInclude Include="UserInfo.h">
-      <Filter>local modules\common modules</Filter>
     </ClInclude>
     <ClInclude Include="Tools.h">
       <Filter>local modules\common modules</Filter>
@@ -81,14 +57,44 @@
     <ClInclude Include="public.h">
       <Filter>local modules\common modules</Filter>
     </ClInclude>
-    <ClInclude Include="ThreadPool.h">
-      <Filter>local modules\common modules</Filter>
-    </ClInclude>
     <ClInclude Include="NtlmInfo.h">
       <Filter>local modules\common modules</Filter>
     </ClInclude>
     <ClInclude Include="m_logger.h">
       <Filter>local modules\common modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_thread_pool.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="m_multi_framework.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="c_userInfo.h">
+      <Filter>local modules\common modules</Filter>
+    </ClInclude>
+    <ClInclude Include="s_kerberos_scanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="s_ldap_scanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="s_oxid_scanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="s_port_scanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="s_smb_scanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="s_weak_scanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="s_winrm_scanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="s_wmi_scanner.h">
+      <Filter>local modules\scanner modules</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -116,27 +122,6 @@
     <ClCompile Include="m_socket_api.cpp">
       <Filter>local modules\api modules</Filter>
     </ClCompile>
-    <ClCompile Include="BaseScanner.cpp">
-      <Filter>local modules\scanner modules</Filter>
-    </ClCompile>
-    <ClCompile Include="KerberosScanner.cpp">
-      <Filter>local modules\scanner modules</Filter>
-    </ClCompile>
-    <ClCompile Include="LdapScanner.cpp">
-      <Filter>local modules\scanner modules</Filter>
-    </ClCompile>
-    <ClCompile Include="OXIDScanner.cpp">
-      <Filter>local modules\scanner modules</Filter>
-    </ClCompile>
-    <ClCompile Include="SMBScanner.cpp">
-      <Filter>local modules\scanner modules</Filter>
-    </ClCompile>
-    <ClCompile Include="WinrmScanner.cpp">
-      <Filter>local modules\scanner modules</Filter>
-    </ClCompile>
-    <ClCompile Include="WMIScanner.cpp">
-      <Filter>local modules\scanner modules</Filter>
-    </ClCompile>
     <ClCompile Include="m_logger.cpp">
       <Filter>local modules\common modules</Filter>
     </ClCompile>
@@ -149,17 +134,44 @@
     <ClCompile Include="public.cpp">
       <Filter>local modules\common modules</Filter>
     </ClCompile>
-    <ClCompile Include="ThreadPool.cpp">
-      <Filter>local modules\common modules</Filter>
-    </ClCompile>
-    <ClCompile Include="UserInfo.cpp">
-      <Filter>local modules\common modules</Filter>
-    </ClCompile>
     <ClCompile Include="ScannerFactory.cpp">
       <Filter>local modules\scanner modules</Filter>
     </ClCompile>
     <ClCompile Include="Tools.cpp">
       <Filter>local modules\common modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_thread_pool.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="m_multi_framework.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="c_userInfo.cpp">
+      <Filter>local modules\common modules</Filter>
+    </ClCompile>
+    <ClCompile Include="s_kerberos_scanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="s_ldap_scanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="s_oxid_scanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="s_port_scanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="s_smb_scanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="s_weak_scanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="s_winrm_scanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="s_wmi_scanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

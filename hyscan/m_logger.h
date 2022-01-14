@@ -10,9 +10,9 @@ public:
 	static mutex loggerMutex;
 	static m_logger* getLogger();
 	~m_logger();
-	void debug();
-	void info();
-	void saveLog();
+	void info(string logInfo);
+	void debug(string logInfo);
+	void saveLog(string tip, string logInfo);
 };
 #endif
 

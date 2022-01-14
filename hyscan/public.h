@@ -3,10 +3,15 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <WS2tcpip.h>
 #include <iostream>
+#include <iomanip>
 #include <sddl.h>
+#include <time.h>
 #include <thread>
 #include <timezoneapi.h>
 #include <vector>
+#include <regex>
+#include <queue>
+#include <map>
 #include <mutex>
 #include <string>
 #include <windows.h>
@@ -22,6 +27,7 @@ using namespace std;
 #define NETBIOSPORT 139
 #define SMBPORT 445
 #define WINRMPORT 5985
-typedef unsigned char		byte;
-typedef unsigned short      WORD;
+//typedef unsigned char		byte;
+//typedef unsigned short      WORD;
+typedef struct hostent HOST_ENT;
 #endif

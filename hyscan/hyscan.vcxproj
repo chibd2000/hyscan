@@ -66,9 +66,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BaseScanner.h" />
-    <ClInclude Include="KerberosScanner.h" />
-    <ClInclude Include="LdapScanner.h" />
+    <ClInclude Include="m_multi_framework.h" />
+    <ClInclude Include="s_kerberos_scanner.h" />
+    <ClInclude Include="s_ldap_scanner.h" />
     <ClInclude Include="m_base_api.h" />
     <ClInclude Include="m_http_api.h" />
     <ClInclude Include="m_kerberos_api.h" />
@@ -79,20 +79,22 @@
     <ClInclude Include="m_wnet_api.h" />
     <ClInclude Include="NtlmInfo.h" />
     <ClInclude Include="NtlmParser.h" />
-    <ClInclude Include="OXIDScanner.h" />
+    <ClInclude Include="s_oxid_scanner.h" />
+    <ClInclude Include="s_port_scanner.h" />
     <ClInclude Include="public.h" />
     <ClInclude Include="ScannerFactory.h" />
-    <ClInclude Include="SMBScanner.h" />
-    <ClInclude Include="ThreadPool.h" />
+    <ClInclude Include="s_smb_scanner.h" />
+    <ClInclude Include="m_thread_pool.h" />
     <ClInclude Include="Tools.h" />
-    <ClInclude Include="UserInfo.h" />
-    <ClInclude Include="WinrmScanner.h" />
-    <ClInclude Include="WMIScanner.h" />
+    <ClInclude Include="c_userInfo.h" />
+    <ClInclude Include="s_weak_scanner.h" />
+    <ClInclude Include="s_winrm_scanner.h" />
+    <ClInclude Include="s_wmi_scanner.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BaseScanner.cpp" />
-    <ClCompile Include="KerberosScanner.cpp" />
-    <ClCompile Include="LdapScanner.cpp" />
+    <ClCompile Include="m_multi_framework.cpp" />
+    <ClCompile Include="s_kerberos_scanner.cpp" />
+    <ClCompile Include="s_ldap_scanner.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="m_base_api.cpp" />
     <ClCompile Include="m_http_api.cpp" />
@@ -104,15 +106,17 @@
     <ClCompile Include="m_wnet_api.cpp" />
     <ClCompile Include="NtlmInfo.cpp" />
     <ClCompile Include="NtlmParser.cpp" />
-    <ClCompile Include="OXIDScanner.cpp" />
+    <ClCompile Include="s_oxid_scanner.cpp" />
+    <ClCompile Include="s_port_scanner.cpp" />
     <ClCompile Include="public.cpp" />
     <ClCompile Include="ScannerFactory.cpp" />
-    <ClCompile Include="SMBScanner.cpp" />
-    <ClCompile Include="ThreadPool.cpp" />
+    <ClCompile Include="s_smb_scanner.cpp" />
+    <ClCompile Include="m_thread_pool.cpp" />
     <ClCompile Include="Tools.cpp" />
-    <ClCompile Include="UserInfo.cpp" />
-    <ClCompile Include="WinrmScanner.cpp" />
-    <ClCompile Include="WMIScanner.cpp" />
+    <ClCompile Include="c_userInfo.cpp" />
+    <ClCompile Include="s_weak_scanner.cpp" />
+    <ClCompile Include="s_winrm_scanner.cpp" />
+    <ClCompile Include="s_wmi_scanner.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

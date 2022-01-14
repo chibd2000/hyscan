@@ -14,7 +14,7 @@ TcpClient::~TcpClient()
 /*
 初始化winSock
 */
-int TcpClient::initWinSock()
+DWORD TcpClient::initWinSock()
 {
 	WORD verision = MAKEWORD(2, 2);
 	WSADATA lpData;
@@ -39,7 +39,7 @@ int TcpClient::initWinSock()
 /*
 创建侦听socket  
 */
-int TcpClient::createSocket(SOCKET& clientSocket)
+DWORD TcpClient::createSocket(SOCKET& clientSocket)
 {
 	clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 	setsockopt(clientSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&socketTimeOut, sizeof(int));
@@ -64,7 +64,7 @@ int TcpClient::createSocket(SOCKET& clientSocket)
 /*
 连接服务器
 */
-int TcpClient::connectSocket(SOCKET &conSock, std::string ip, int port)
+DWORD TcpClient::connectSocket(SOCKET &conSock, std::string ip, int port)
 {
 	// 建立地址结构体
 	sockaddr_in hostAddr;
@@ -100,7 +100,7 @@ int TcpClient::connectSocket(SOCKET &conSock, std::string ip, int port)
 	return 0;
 }
 
-int TcpClient::sendData(SOCKET &clientSock, string &packetData)
+DWORD TcpClient::sendData(SOCKET& clientSock, string& packetData)
 {
 	int err = send(clientSock, packetData.c_str(), packetData.size(), 0);
 	if (err == SOCKET_ERROR)
@@ -121,7 +121,7 @@ int TcpClient::sendData(SOCKET &clientSock, string &packetData)
 	return 0;
 }
 
-int TcpClient::receiveData(SOCKET &clientSock, string &packetData, int* packetSize)
+DWORD TcpClient::receiveData(SOCKET& clientSock, string& packetData, int* packetSize)
 {
 	static int cnt = 1; // 接收数据编号-静态
 	// 通过已建立连接的套接字，接收数据 设定缓冲1024字节
