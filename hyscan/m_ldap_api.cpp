@@ -25,7 +25,6 @@ LDAP_API::LDAP_API(string ldapServerAddr, string domainName)
 	this->init();
 }
 
-
 LDAP_API::~LDAP_API()
 {
 	this->closeLdapConnection();
@@ -238,7 +237,7 @@ vector<string> LDAP_API::search(string filterGrammar, string dn, PCHAR searchAtt
 								char szAddrBuffer[0x10] = { 0 };
 								DNS_RPC_RECORD* d = (DNS_RPC_RECORD*)berVal[0]->bv_val;
 								sprintf(szAddrBuffer, "%d.%d.%d.%d", d->addr.address[0], d->addr.address[1], d->addr.address[2], d->addr.address[3]);
-								cout << "\t" << pAttribute << szAddrBuffer << endl << " ";
+								cout << "\t" << pAttribute << "=" << szAddrBuffer << endl << " ";
 								ldap_value_free_len(berVal);
 							}
 							
@@ -269,6 +268,7 @@ vector<string> LDAP_API::search(string filterGrammar, string dn, PCHAR searchAtt
 				else{
 					this->closeLdapConnection();
 				}
+				cout << endl;
 			}
 			cout << endl;
 		}else{
@@ -541,5 +541,10 @@ void LDAP_API::searchDnsRecord(){
 
 void LDAP_API::searchTrustDomain(){
 	PCHAR pAttributes[] = { "TargetName", NULL };
+	this->search("(objectClass=trustedDomain)", this->baseDn, pAttributes);
+}
+
+void LDAP_API::searchLAPs(){
+	PCHAR pAttributes[] = { "ms-Mcs-AdmPwd", NULL };
 	this->search("(objectClass=trustedDomain)", this->baseDn, pAttributes);
 }

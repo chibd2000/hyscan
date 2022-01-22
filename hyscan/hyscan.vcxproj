@@ -20,6 +20,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -38,7 +39,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -48,6 +52,7 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -60,17 +65,39 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="cJSON.h" />
+    <ClInclude Include="CJsonObject.hpp" />
+    <ClInclude Include="cmdline.h" />
+    <ClInclude Include="crypto_Base64.h" />
+    <ClInclude Include="crypto_Sha1.h" />
+    <ClInclude Include="m_dubbo_exp.h" />
+    <ClInclude Include="m_ftp_exp.h" />
+    <ClInclude Include="m_http_api.h" />
+    <ClInclude Include="m_javarmi_exp.h" />
+    <ClInclude Include="m_ldap_exp.h" />
+    <ClInclude Include="m_memcache_exp.h" />
+    <ClInclude Include="m_mongodb_exp.h" />
+    <ClInclude Include="m_mssql_exp.h" />
     <ClInclude Include="m_multi_framework.h" />
+    <ClInclude Include="m_mysql_exp.h" />
+    <ClInclude Include="m_redis_exp.h" />
+    <ClInclude Include="m_rsync_exp.h" />
+    <ClInclude Include="m_smb_exp.h" />
+    <ClInclude Include="m_w_base_api.h" />
+    <ClInclude Include="m_base_exp.h" />
+    <ClInclude Include="c_service.h" />
+    <ClInclude Include="m_zookeeper_exp.h" />
     <ClInclude Include="s_kerberos_scanner.h" />
     <ClInclude Include="s_ldap_scanner.h" />
     <ClInclude Include="m_base_api.h" />
-    <ClInclude Include="m_http_api.h" />
     <ClInclude Include="m_kerberos_api.h" />
     <ClInclude Include="m_ldap_api.h" />
     <ClInclude Include="m_logger.h" />
@@ -79,12 +106,14 @@
     <ClInclude Include="m_wnet_api.h" />
     <ClInclude Include="NtlmInfo.h" />
     <ClInclude Include="NtlmParser.h" />
+    <ClInclude Include="s_net_scanner.h" />
     <ClInclude Include="s_oxid_scanner.h" />
     <ClInclude Include="s_port_scanner.h" />
     <ClInclude Include="public.h" />
     <ClInclude Include="ScannerFactory.h" />
     <ClInclude Include="s_smb_scanner.h" />
     <ClInclude Include="m_thread_pool.h" />
+    <ClInclude Include="s_web_scanner.h" />
     <ClInclude Include="Tools.h" />
     <ClInclude Include="c_userInfo.h" />
     <ClInclude Include="s_weak_scanner.h" />
@@ -92,12 +121,31 @@
     <ClInclude Include="s_wmi_scanner.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cJSON.c" />
+    <ClCompile Include="CJsonObject.cpp" />
+    <ClCompile Include="crypto_Base64.cpp" />
+    <ClCompile Include="crypto_Sha1.cpp" />
+    <ClCompile Include="m_dubbo_exp.cpp" />
+    <ClCompile Include="m_ftp_exp.cpp" />
+    <ClCompile Include="m_http_api.cpp" />
+    <ClCompile Include="m_javarmi_exp.cpp" />
+    <ClCompile Include="m_ldap_exp.cpp" />
+    <ClCompile Include="m_memcache_exp.cpp" />
+    <ClCompile Include="m_mongodb_exp.cpp" />
+    <ClCompile Include="m_mssql_exp.cpp" />
     <ClCompile Include="m_multi_framework.cpp" />
+    <ClCompile Include="m_mysql_exp.cpp" />
+    <ClCompile Include="m_redis_exp.cpp" />
+    <ClCompile Include="m_rsync_exp.cpp" />
+    <ClCompile Include="m_smb_exp.cpp" />
+    <ClCompile Include="m_w_base_api.cpp" />
+    <ClCompile Include="m_base_exp.cpp" />
+    <ClCompile Include="c_service.cpp" />
+    <ClCompile Include="m_zookeeper_exp.cpp" />
     <ClCompile Include="s_kerberos_scanner.cpp" />
     <ClCompile Include="s_ldap_scanner.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="m_base_api.cpp" />
-    <ClCompile Include="m_http_api.cpp" />
     <ClCompile Include="m_kerberos_api.cpp" />
     <ClCompile Include="m_ldap_api.cpp" />
     <ClCompile Include="m_logger.cpp" />
@@ -106,12 +154,14 @@
     <ClCompile Include="m_wnet_api.cpp" />
     <ClCompile Include="NtlmInfo.cpp" />
     <ClCompile Include="NtlmParser.cpp" />
+    <ClCompile Include="s_net_scanner.cpp" />
     <ClCompile Include="s_oxid_scanner.cpp" />
     <ClCompile Include="s_port_scanner.cpp" />
     <ClCompile Include="public.cpp" />
     <ClCompile Include="ScannerFactory.cpp" />
     <ClCompile Include="s_smb_scanner.cpp" />
     <ClCompile Include="m_thread_pool.cpp" />
+    <ClCompile Include="s_web_scanner.cpp" />
     <ClCompile Include="Tools.cpp" />
     <ClCompile Include="c_userInfo.cpp" />
     <ClCompile Include="s_weak_scanner.cpp" />

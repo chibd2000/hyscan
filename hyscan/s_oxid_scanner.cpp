@@ -1,5 +1,5 @@
 #include "s_oxid_scanner.h"
-
+extern mutex g_vMutex;
 const char IOXID_RPC_NEGOTIATE[] = {
 	0x05, 0x00, 0x0b, 0x03, 0x10, 0x00, 0x00, 0x00,
 	0x48, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
@@ -51,6 +51,7 @@ void OXIDScanner::check(string& ipAddr){
 								/**
 								²Î¿¼ÁËhttps://github.com/uknowsec/OXID_Find/blob/master/OXID_Find/main.cpp
 								*/
+								g_vMutex.lock();
 								char* p;
 								p = (char*)receiveData.c_str();
 								for (int i = 40; i < packetSize; i++) {
@@ -64,10 +65,11 @@ void OXIDScanner::check(string& ipAddr){
 									}
 									if (p[i] == 0 && p[i + 1] == 0 && p[i + 2] == 0 && p[i + 3] == 7)
 									{
-										printf("\n\t[+] IP Address: ");
+										printf("\n\tIP Address: ");
 									}
-
 								}
+								cout << endl;
+								g_vMutex.unlock();
 								closesocket(clientSocket);
 							}
 						}

@@ -14,6 +14,6 @@ public:
 	DWORD sendData(SOCKET& clientSock, string& packetData);
 	DWORD receiveData(SOCKET& clientSock, string& packetData, int* packetSize);
 private:
-	DWORD socketTimeOut;
+	DWORD dwSocketTimeOut;
 };
 #endif

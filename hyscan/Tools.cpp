@@ -1,26 +1,59 @@
 #include "Tools.h"
 #include <stdarg.h>
-string wchar2Char(wchar_t* wc)
+string wchar2Char(wchar_t* srcString)
 {
 	char* m_char;
-	int len = WideCharToMultiByte(CP_ACP, 0, wc, wcslen(wc), NULL, 0, NULL, NULL);
+	int len = WideCharToMultiByte(CP_ACP, 0, srcString, wcslen(srcString), NULL, 0, NULL, NULL);
 	m_char = new char[len + 1];
-	WideCharToMultiByte(CP_ACP, 0, wc, wcslen(wc), m_char, len, NULL, NULL);
+	WideCharToMultiByte(CP_ACP, 0, srcString, wcslen(srcString), m_char, len, NULL, NULL);
 	m_char[len] = '\0';
 	string w_str(m_char);
 	return w_str;
 }
 
-wstring string2Wstring(const std::string& str)
+wstring string2Wstring(const string& srcString)
 {
-	int num = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
+	int num = MultiByteToWideChar(CP_UTF8, 0, srcString.c_str(), -1, NULL, 0);
 	wchar_t *wide = new wchar_t[num];
-	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, wide, num);
+	MultiByteToWideChar(CP_UTF8, 0, srcString.c_str(), -1, wide, num);
 	std::wstring w_str(wide);
 	delete[] wide;
 	return w_str;
 }
 
+string gbk2Utf8(const string& srcString)
+{
+	int len = MultiByteToWideChar(CP_ACP, 0, srcString.c_str(), -1, NULL, 0);
+	wchar_t* wstr = new wchar_t[len + 1];
+	memset(wstr, 0, len + 1);
+	MultiByteToWideChar(CP_ACP, 0, srcString.c_str(), -1, wstr, len);
+	len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
+	char* str = new char[len + 1];
+	memset(str, 0, len + 1);
+	WideCharToMultiByte(CP_UTF8, 0, wstr, -1, str, len, NULL, NULL);
+	string strTemp = str;
+	if (wstr) delete[] wstr;
+	if (str) delete[] str;
+	return strTemp;
+}
+
+string utf82Gbk(const string& srcString)
+{	
+	int len = MultiByteToWideChar(CP_UTF8, 0, srcString.c_str(), -1, NULL, 0);
+	wchar_t* wszGBK = new wchar_t[len + 1];
+	memset(wszGBK, 0, len * 2 + 2);
+	MultiByteToWideChar(CP_UTF8, 0, srcString.c_str(), -1, wszGBK, len);
+	len = WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, NULL, 0, NULL, NULL);
+	char* szGBK = new char[len + 1];
+	memset(szGBK, 0, len + 1);
+	WideCharToMultiByte(CP_ACP, 0, wszGBK, -1, szGBK, len, NULL, NULL);
+	string strTemp(szGBK);
+	if (wszGBK) delete[] wszGBK;
+	if (szGBK) delete[] szGBK;
+	return strTemp;
+}
+
+/*
 int cidr2ipmask(char* cidr, unsigned int* ip, unsigned int* mask)
 {
 	//unsigned char cidr_[0x32];
@@ -33,7 +66,7 @@ int cidr2ipmask(char* cidr, unsigned int* ip, unsigned int* mask)
 	
 	*ip = (b[0] << 24UL) | (b[1] << 16UL) | (b[2] << 8UL) | (b[3]);
 	*mask = (0xFFFFFFFFUL << (32 - b[4])) & 0xFFFFFFFFUL;
-}
+}*/
 
 string int2ip(unsigned int num)
 {
@@ -53,57 +86,6 @@ string int2ip(unsigned int num)
 	}
 
 	return strRet;
-}
-
-// 默认的base表解码
-static inline bool is_base64(unsigned char c) {
-	return (isalnum(c) || (c == '+') || (c == '/'));
-}
-
-string base64decode(string const& encodedString, string base64chars) {
-	int in_len = encodedString.size();
-	int i = 0;
-	int j = 0;
-	int in_ = 0;
-	unsigned char char_array_4[4], char_array_3[3];
-	string ret;
-
-	while (in_len-- && (encodedString[in_] != '=') && is_base64(encodedString[in_])) {
-		char_array_4[i++] = encodedString[in_]; in_++;
-		if (i == 4) {
-			for (i = 0; i <4; i++)
-				char_array_4[i] = base64chars.find(char_array_4[i]);
-
-			char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-			char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-			char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-			for (i = 0; (i < 3); i++)
-				ret += char_array_3[i];
-			i = 0;
-		}
-	}
-
-	if (i) {
-		for (j = i; j <4; j++)
-			char_array_4[j] = 0;
-
-		for (j = 0; j <4; j++)
-			char_array_4[j] = encodedString.find(char_array_4[j]);
-
-		char_array_3[0] = (char_array_4[0] << 2) + ((char_array_4[1] & 0x30) >> 4);
-		char_array_3[1] = ((char_array_4[1] & 0xf) << 4) + ((char_array_4[2] & 0x3c) >> 2);
-		char_array_3[2] = ((char_array_4[2] & 0x3) << 6) + char_array_4[3];
-
-		for (j = 0; (j < i - 1); j++) ret += char_array_3[j];
-	}
-
-	return ret;
-}
-
-string formatString(string& formatStr, ...){
-	
-	return NULL;
 }
 
 vector<string> split(const string& str, const string& delim) {
@@ -128,111 +110,88 @@ vector<string> split(const string& str, const string& delim) {
 	return vString;
 }
 
-std::u16string utf82Utf16(const string& u8str, bool addbom, bool* ok)
+BYTE str2byte(const string &str)
 {
-	u16string u16str;
-	u16str.reserve(u8str.size());
-	if (addbom) {
-		u16str.push_back(0xFEFF);	//bom (字节表示为 FF FE)
-	}
-	std::string::size_type len = u8str.length();
+	BYTE bRet = 0x00;	//结果
+	size_t iPos = 1;	//位
+	size_t power = 1;	//幂次
 
-	const unsigned char* p = (unsigned char*)(u8str.data());
-	// 判断是否具有BOM(判断长度小于3字节的情况)
-	if (len > 3 && p[0] == 0xEF && p[1] == 0xBB && p[2] == 0xBF){
-		p += 3;
-		len -= 3;
-	}
-
-	bool is_ok = true;
-	// 开始转换
-	for (std::string::size_type i = 0; i < len; ++i) {
-		uint32_t ch = p[i];	// 取出UTF8序列首字节
-		if ((ch & 0x80) == 0) {
-			// 最高位为0，只有1字节表示UNICODE代码点
-			u16str.push_back((char16_t)ch);
-			continue;
-		}
-		switch (ch & 0xF0)
-		{
-		case 0xF0: // 4 字节字符, 0x10000 到 0x10FFFF
-		{
-					   uint32_t c2 = p[++i];
-					   uint32_t c3 = p[++i];
-					   uint32_t c4 = p[++i];
-					   // 计算UNICODE代码点值(第一个字节取低3bit，其余取6bit)
-					   uint32_t codePoint = ((ch & 0x07U) << 18) | ((c2 & 0x3FU) << 12) | ((c3 & 0x3FU) << 6) | (c4 & 0x3FU);
-					   if (codePoint >= 0x10000)
-					   {
-						   // 在UTF-16中 U+10000 到 U+10FFFF 用两个16bit单元表示, 代理项对.
-						   // 1、将代码点减去0x10000(得到长度为20bit的值)
-						   // 2、high 代理项 是将那20bit中的高10bit加上0xD800(110110 00 00000000)
-						   // 3、low  代理项 是将那20bit中的低10bit加上0xDC00(110111 00 00000000)
-						   codePoint -= 0x10000;
-						   u16str.push_back((char16_t)((codePoint >> 10) | 0xD800U));
-						   u16str.push_back((char16_t)((codePoint & 0x03FFU) | 0xDC00U));
-					   }
-					   else
-					   {
-						   // 在UTF-16中 U+0000 到 U+D7FF 以及 U+E000 到 U+FFFF 与Unicode代码点值相同.
-						   // U+D800 到 U+DFFF 是无效字符, 为了简单起见，这里假设它不存在(如果有则不编码)
-						   u16str.push_back((char16_t)codePoint);
-					   }
-		}
-			break;
-		case 0xE0: // 3 字节字符, 0x800 到 0xFFFF
-		{
-					   uint32_t c2 = p[++i];
-					   uint32_t c3 = p[++i];
-					   // 计算UNICODE代码点值(第一个字节取低4bit，其余取6bit)
-					   uint32_t codePoint = ((ch & 0x0FU) << 12) | ((c2 & 0x3FU) << 6) | (c3 & 0x3FU);
-					   u16str.push_back((char16_t)codePoint);
-		}
-			break;
-		case 0xD0: // 2 字节字符, 0x80 到 0x7FF
-		case 0xC0:
-		{
-					 uint32_t c2 = p[++i];
-					 // 计算UNICODE代码点值(第一个字节取低5bit，其余取6bit)
-					 uint32_t codePoint = ((ch & 0x1FU) << 12) | ((c2 & 0x3FU) << 6);
-					 u16str.push_back((char16_t)codePoint);
-		}
-			break;
-		default:	// 单字节部分(前面已经处理，所以不应该进来)
-			is_ok = false;
-			break;
-		}
-	}
-	if (ok != NULL) { *ok = is_ok; }
-
-	return u16str;
-}
-/*
-string octet2String(const char * src_in, int size)
-{
-	if (src_in[0] == 0x04)
+	//没找的"x"返回
+	/*
+	if (std::string::npos == str.find("x"))
 	{
-		if ((int)src_in[1] <128)
+	return false;
+	}*/
+
+	//从右往左依次取每个字符
+	while (str.find("x") != (str.length() - iPos))
+	{
+		char cVal = str[str.length() - iPos];
+		int iVal = int(cVal);
+
+		//0~9
+		if ((iVal >= 48) && (iVal <= 57))
 		{
-			return string(src_in + 2, src_in[1]);
+			bRet += ((iVal - 48) * power);
 		}
-		else
+		//A~F
+		else if ((iVal >= 65) && (iVal <= 70))
 		{
-			int count_len = (int)src_in[2] - 0x80;
-			int content_len = 0;
-			for (int i = 0; i<count_len; i++)
+			bRet += ((iVal - 55) * power);
+		}
+		//a~f
+		else if ((iVal >= 97) && (iVal <= 102))
+		{
+			bRet += ((iVal - 87) * power);
+		}
+
+		++iPos;
+		power *= 16;
+	}
+
+	return bRet;
+}
+
+string getHexString(const string& jsonString){
+	string finaString;
+	string tempString;
+
+	if (jsonString.empty()){
+		finaString = "";
+		return finaString;
+	}
+
+	finaString.resize(jsonString.size()); //默认初始化先为最大，后面来进行调整
+
+	DWORD dwIndex = 0;
+	DWORD i = 0, j;
+	DWORD dwStringSize = 0;
+	while (i < jsonString.size()){
+		// 每次取两个字符
+		tempString = jsonString.substr(i, 2);
+
+		// 判断是否为存在 \x 这两个字符
+		if (tempString.find("\\x") != string::npos){
+			// 如果存在那么将 加上这2个字符的总共4个字符进行转化为十六进制
+			tempString = jsonString.substr(i, 4);
+			finaString[dwIndex] = str2byte(tempString);
+			dwIndex++;
+
+			i += 4; // 偏移+4
+			dwStringSize++; // 容器大小+1个字节大小
+		}
+		else{
+			// 如果没有那么当前这两个字符就是普通字符
+			for (j = 0; j < 2; j++, dwIndex++)
 			{
-				count_len =(count_len << 8) + (int)src_in[2 + i];
+				finaString[dwIndex] = tempString[j];
 			}
 
-			return (content_len > size ? "" : string(src_in + 3, content_len));
+			i += 2; // 偏移+2
+			dwStringSize += 2; // 容器大小+2个字节大小
 		}
 	}
-	return "";
-}
 
-string string2octet(const char* src_in, int size)
-{
-	
-	return "";
-	}*/
+	finaString.resize(dwStringSize);
+	return finaString;
+}

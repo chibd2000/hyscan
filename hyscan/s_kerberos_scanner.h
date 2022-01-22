@@ -6,7 +6,7 @@ class KerberosScanner
 public:
 	KerberosScanner();
 	~KerberosScanner();
-	void reqAsEnumUser();
+	static void reqAsEnumUser();
 };
 #endif
 

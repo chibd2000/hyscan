@@ -1,5 +1,5 @@
-#include "m_thread_pool.h"
-
+ #include "m_thread_pool.h"
+// #define DEBUG 1
 
 ThreadPool::ThreadPool(DWORD dwMinThreadNum, DWORD dwMaxThreadNum)
 {
@@ -21,7 +21,7 @@ ThreadPool::ThreadPool(DWORD dwMinThreadNum, DWORD dwMaxThreadNum)
 				this->consumeThread[i] = thread(ThreadPool::work, this);
 				this->aliveThreadNum++;
 			}
-			cout << "[+] Create ConsumeThread Successed" << endl;
+			//cout << "[+] Create ConsumeThread Successed" << endl;
 		}else{
 			cout << "[-] Create ManagerThread Failed" << endl;
 			break;
@@ -30,7 +30,7 @@ ThreadPool::ThreadPool(DWORD dwMinThreadNum, DWORD dwMaxThreadNum)
 		// 创建管理者线程
 		this->managerThread = thread(ThreadPool::manage, this);
 		if (this->consumeThread){
-			cout << "[+] Create ManagerThread Successed" << endl;
+			//cout << "[+] Create ManagerThread Successed" << endl;
 		}else{
 			cout << "[-] Create ConsumeThread Failed" << endl;
 			break;
@@ -69,6 +69,17 @@ void ThreadPool::addTask(Task task){
 }
 //////////////////////////////////////
 void ThreadPool::addTask(callbackFunc func, map<string, string>* mArgs){
+	if (this->bShutDown){
+		return;
+	}
+
+	this->taskQueue->addTask(func, mArgs);
+	// 每次添加完任务的话都可以进行通知下消费者线程
+	conditionVariable.notify_one();
+}
+
+//////////////////////////////////////
+void ThreadPool::addTask(callbackFunc2param func, map<string, string>* mArgs){
 	if (this->bShutDown){
 		return;
 	}
@@ -146,40 +157,54 @@ void ThreadPool::work(void* pool){
 		threadPool->workThreadNum++;
 		threadPool->threadMutex.unlock();
 
-		// 		task.func(task.mArgs);
+		// task.func(task.mArgs);
 		if (task.mArgs->size() == 1){
-			string ipAddr;
-			map<string, string>::iterator it = task.mArgs->find("ipAddr");
+			string arg1;
+			map<string, string>::iterator it = task.mArgs->find("arg1");
 			if (it != task.mArgs->end())
-				ipAddr = it->second;
-			task.func(ipAddr);
+				arg1 = it->second;
+			task.func(arg1);
+		}
+		else if (task.mArgs->size() == 2){
+			string arg1;
+			string arg2;
+			map<string, string>::iterator it = task.mArgs->find("arg1");
+			it = task.mArgs->find("arg1");
+			if (it != task.mArgs->end())
+				arg1 = it->second;
+			it = task.mArgs->find("arg2");
+			if (it != task.mArgs->end())
+				arg2 = it->second;
+			task.param2Func(arg1, arg2);
 		}
 		else if (task.mArgs->size() == 5){
-			string serverName;
-			string domainName;
-			string domainUsername;
-			string domainPassword;
-			string personalPassword;
+			string arg1;
+			string arg2;
+			string arg3;
+			string arg4;
+			string arg5;
 			map<string, string>::iterator it;
-			it = task.mArgs->find("serverName");
+			it = task.mArgs->find("arg1");
 			if (it != task.mArgs->end())
-				serverName = it->second;
-			it = task.mArgs->find("domainName");
+				arg1 = it->second;
+			it = task.mArgs->find("arg2");
 			if (it != task.mArgs->end())
-				domainName = it->second;
-			it = task.mArgs->find("domainUsername");
+				arg2 = it->second;
+			it = task.mArgs->find("arg3");
 			if (it != task.mArgs->end())
-				domainUsername = it->second;
-			it = task.mArgs->find("domainPassword");
+				arg3 = it->second;
+			it = task.mArgs->find("arg4");
 			if (it != task.mArgs->end())
-				domainPassword = it->second;
-			it = task.mArgs->find("personalPassword");
+				arg4 = it->second;
+			it = task.mArgs->find("arg5");
 			if (it != task.mArgs->end())
-				personalPassword = it->second;
-			task.weakFunc(serverName, domainName, domainUsername, domainPassword, personalPassword);
+				arg5 = it->second;
+			task.weakFunc(arg1, arg2, arg3, arg4, arg5);
 		}
-		delete task.mArgs;
-		task.mArgs = nullptr;
+		if (task.mArgs != nullptr){
+			delete task.mArgs;
+			task.mArgs = nullptr;
+		}
 		threadPool->threadMutex.lock();
 		threadPool->workThreadNum--;
 		threadPool->threadMutex.unlock();
@@ -191,7 +216,6 @@ Task ThreadPool::getTask(){
 }
 
 // 管理者函数
-
 void ThreadPool::manage(void* arg){
 	ThreadPool* threadPool = (ThreadPool*)arg;
 	DWORD dwQueueSizeCount = 0;
@@ -215,6 +239,7 @@ void ThreadPool::manage(void* arg){
 			threadPool->conditionVariable.notify_all();
 			return;
 		}
+		// dwQueueSizeCount = 0;
 		
 		// 每次调整创建/自杀5个线程
 		DWORD dwAdjustThreadNum = 5;

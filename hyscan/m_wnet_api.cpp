@@ -14,7 +14,7 @@ DWORD WNET_API::openConnectBySelf(string serverName){
 	// cout << "[+] Calling WNetAddConnection2 with " << serverName << endl;
 
 	NETRESOURCE netResource;
-	ZeroMemory(&netResource, sizeof(NETRESOURCE));
+	RtlZeroMemory(&netResource, sizeof(NETRESOURCE));
 	string fmtRemoteName;
 	fmtRemoteName.append("\\\\");
 	fmtRemoteName.append(serverName);
@@ -35,7 +35,7 @@ DWORD WNET_API::openConnectByUserPass(string serverName, string username, string
 	// cout << "[+] Calling WNetAddConnection2 with " << serverName << endl;
 
 	NETRESOURCE netResource;
-	ZeroMemory(&netResource, sizeof(NETRESOURCE));
+	RtlZeroMemory(&netResource, sizeof(NETRESOURCE));
 	string fmtRemoteName;
 	fmtRemoteName.append("\\\\");
 	fmtRemoteName.append(serverName);
@@ -46,9 +46,24 @@ DWORD WNET_API::openConnectByUserPass(string serverName, string username, string
 	netResource.lpProvider = NULL;
 
 	DWORD dwRet = WNetAddConnection2(&netResource, password.c_str(), username.c_str(), CONNECT_TEMPORARY);
-	if (dwRet == NO_ERROR){
+	switch (dwRet)
+	{
+	case IPC_SUCCESS:
+		printf("[+] %s Connection success\n", netResource.lpRemoteName);
+		WNetCancelConnection2(netResource.lpLocalName, CONNECT_UPDATE_PROFILE, TRUE);
 		this->closeConnection(fmtRemoteName);
+	case IPC_PRIVILEGE_ERROR:
+		printf("\t[-] %s The privilege wrong\n", netResource.lpRemoteName);
+	case IPC_NETWORK_ERROR:
+		printf("\t[-] %s The network name could not be found\n", netResource.lpRemoteName);
+	case IPC_USER_PASS_ERROR:
+		printf("\t[-] %s The username or password is incorrect\n", netResource.lpRemoteName);
+	case IPC_PASS_EXPIRE:
+		printf("\t[-] %s The password is expired\n", netResource.lpRemoteName);
+	default:
+		printf("\t[-] %s WNetAddConnection2 failed with error\n", netResource.lpRemoteName);
 	}
+	
 	return dwRet;
 }
 
@@ -80,12 +95,7 @@ void WNET_API::getLoggedUsers(wstring serverName){
 	//LPTSTR pszServerName = NULL;
 	do // begin do
 	{
-		nStatus = NetSessionEnum((LPWSTR)serverName.c_str(),
-			NULL,
-			NULL,
-			dwLevel,
-			(LPBYTE*)&pBuf,
-			dwPrefMaxLen,
+		nStatus = NetSessionEnum((LPWSTR)serverName.c_str(), NULL, NULL, dwLevel, (LPBYTE*)&pBuf, dwPrefMaxLen,
 			&dwEntriesRead,
 			&dwTotalEntries,
 			&dwResumeHandle);
@@ -155,6 +165,8 @@ void WNET_API::getLoggedUsers(wstring serverName){
 }
 
 /////////////////////// @ske大师兄
+// @param serverName
+// @param groupName
 vector<wstring> WNET_API::getLocalGroupMembers(wstring serverName, wstring groupName){
 	LOCALGROUP_MEMBERS_INFO_2* pGroupInfo;			// LOCALGROUP_MEMBERS_INFO_2结构获得返回与本地组成员关联的SID、帐户信息和域名，变量buff存放获取到的信息
 	DWORD dwPrefmaxlen = MAX_PREFERRED_LENGTH;	// 指定返回数据的首选最大长度，以字节为单位。如果指定MAX_PREFERRED_LENGTH，该函数将分配数据所需的内存量。
@@ -172,7 +184,7 @@ vector<wstring> WNET_API::getLocalGroupMembers(wstring serverName, wstring group
 		}
 		// cout << endl;
 	}else{
-		cout << "[-] WNET_API::getLocalGroupMembers Error, The Error is " << dwRet << endl;
+		printf("[-] WNET_API::getLocalGroupMembers Error, The Error is %d\n", dwRet);
 	}
 	return membersList;
 }
@@ -207,8 +219,8 @@ vector<wstring> WNET_API::getDomainGroupMembers(wstring serverName, wstring grou
 	}
 	else
 	{
-		cout << "[-] WNET_API::getDomainGroupMembers Error, The Error is " << dwRet << endl;
-		exit(0);
+		printf("[-] WNET_API::getDomainGroupMembers Error, The Error is %d\n", dwRet);
+		exit(-1);
 	}
 }
 

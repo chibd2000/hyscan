@@ -1,9 +1,9 @@
 #ifndef WMIAPI_H_H
 #define WMIAPI_H_H
-#include "m_base_api.h"
+#include "m_w_base_api.h"
 #include <WbemIdl.h>
 #pragma comment(lib,"WbemUuid.lib")
-class WMIAPI: public MYAPI
+class WMIAPI : public m_w_base_api
 {
 private:
 	IEnumWbemClassObject* pEnumClsObj;

@@ -3,12 +3,13 @@
 
 TcpClient::TcpClient()
 {
-	this->socketTimeOut = 3000;
+	this->dwSocketTimeOut = 500;
 }
 
 
 TcpClient::~TcpClient()
 {
+
 }
 
 /*
@@ -42,7 +43,8 @@ DWORD TcpClient::initWinSock()
 DWORD TcpClient::createSocket(SOCKET& clientSocket)
 {
 	clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-	setsockopt(clientSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&socketTimeOut, sizeof(int));
+	setsockopt(clientSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&this->dwSocketTimeOut, sizeof(DWORD));
+	setsockopt(clientSocket, SOL_SOCKET, SO_SNDTIMEO, (char *)&this->dwSocketTimeOut, sizeof(DWORD));
 	if (clientSocket == INVALID_SOCKET)
 	{
 #ifdef DEBUG

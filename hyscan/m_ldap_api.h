@@ -1,6 +1,6 @@
 #ifndef LDAPAPI_H_H
 #define LDAPAPI_H_H
-#include "m_base_api.h"
+#include "m_w_base_api.h"
 #include "Tools.h"
 #include <Winldap.h>
 #include <Iads.h>
@@ -48,7 +48,7 @@ public:
 	DNS_ADDR addr;
 };
 
-class LDAP_API : public MYAPI
+class LDAP_API : public m_w_base_api
 {
 private:
 	string username;
@@ -84,6 +84,7 @@ public:
 	void searchDomainFileServer();
 	void searchDnsRecord();
 	void searchTrustDomain();
+	void searchLAPs();
 	void updateResourceBasedConstrainedDelegation(string pcName);
 	void updatePrivilege();
 };

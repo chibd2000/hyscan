@@ -1,7 +1,7 @@
 #include "s_smb_scanner.h"
 
-extern vector<NtlmInfo> vNtlmInfo;
-extern mutex vectorNtlmInfoMutex;
+extern vector<NtlmInfo> g_vNtlmInfo;
+extern mutex g_vMutex;
 const TCHAR NTLMSSP_SMB_NEGOTIATE[] = { 
 	0x00, 0x00, 0x00, 0x85, 0xFF, 0x53, 0x4D, 0x42, 0x72, 0x00, 0x00, 0x00, 0x00, 0x18, 0x53, 0xC8,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFE,
@@ -65,16 +65,16 @@ void SMBScanner::check(string& ipAddr){
 							if (!tcpClient.receiveData(clientSocket, receiveData, &iPacketSize))
 							{
 								NtlmInfo ntlmInfo;
-								ZeroMemory(&ntlmInfo, sizeof(NtlmInfo));
+								RtlZeroMemory(&ntlmInfo, sizeof(NtlmInfo));
 								memcpy(ntlmInfo.ipAddr, ipAddr.c_str(), 0x10); // 111.111.111.111
 								if (receiveData.substr(BASE_SMB_NTLMSSP, 7) == NTLMSSP_SIGNTURE)
 									NtlmParser::parser(receiveData, &ntlmInfo, BASE_SMB_NTLMSSP);
 								else if (receiveData.substr(BASE_SMB_NTLMSSP + 2, 7) == NTLMSSP_SIGNTURE)
 									NtlmParser::parser(receiveData, &ntlmInfo, BASE_SMB_NTLMSSP+2);
 								closesocket(clientSocket);
-								vectorNtlmInfoMutex.lock();
-								vNtlmInfo.push_back(ntlmInfo);
-								vectorNtlmInfoMutex.unlock();
+								g_vMutex.lock();
+								g_vNtlmInfo.push_back(ntlmInfo);
+								g_vMutex.unlock();
 							}
 						}
 					}
@@ -86,7 +86,7 @@ void SMBScanner::check(string& ipAddr){
 
 void SMBScanner::pth(string& remoteName){
 	NETRESOURCE netResource;
-	ZeroMemory(&netResource, sizeof(NETRESOURCE));
+	RtlZeroMemory(&netResource, sizeof(NETRESOURCE));
 	string fmtRemoteName;
 	
 	fmtRemoteName.append("\\\\");

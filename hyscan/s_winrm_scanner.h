@@ -1,7 +1,6 @@
 #ifndef WINRMSCANNER_H_H
 #define WINRMSCANNER_H_H
 #include "public.h"
-#include "m_http_api.h"
 #include "NtlmInfo.h"
 #include "NtlmParser.h"
 

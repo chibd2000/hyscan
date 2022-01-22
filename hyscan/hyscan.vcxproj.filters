@@ -22,11 +22,17 @@
     <Filter Include="local modules\scanner modules">
       <UniqueIdentifier>{d2d741e3-2d85-45e2-817e-68fdf8cc3bfc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="local modules\crypto modules">
+      <UniqueIdentifier>{50898638-d750-459b-b631-4eb303ef76ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="local modules\scanner modules\service">
+      <UniqueIdentifier>{10542817-be6c-426a-99c5-dda93486c96b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="local modules\scanner modules\service\exploit">
+      <UniqueIdentifier>{ff95b6aa-cfe0-4bdf-8cfd-2fe35320d279}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="m_http_api.h">
-      <Filter>local modules\api modules</Filter>
-    </ClInclude>
     <ClInclude Include="m_base_api.h">
       <Filter>local modules\api modules</Filter>
     </ClInclude>
@@ -96,13 +102,79 @@
     <ClInclude Include="s_wmi_scanner.h">
       <Filter>local modules\scanner modules</Filter>
     </ClInclude>
+    <ClInclude Include="cmdline.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CJsonObject.hpp">
+      <Filter>local modules\common modules</Filter>
+    </ClInclude>
+    <ClInclude Include="cJSON.h">
+      <Filter>local modules\common modules</Filter>
+    </ClInclude>
+    <ClInclude Include="crypto_Base64.h">
+      <Filter>local modules\crypto modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_w_base_api.h">
+      <Filter>local modules\api modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_ftp_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="m_rsync_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="m_base_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="m_mongodb_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="m_dubbo_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="m_redis_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="m_ldap_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="m_javarmi_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="m_zookeeper_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="m_smb_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="c_service.h">
+      <Filter>local modules\scanner modules\service</Filter>
+    </ClInclude>
+    <ClInclude Include="s_net_scanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_mysql_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="crypto_Sha1.h">
+      <Filter>local modules\crypto modules</Filter>
+    </ClInclude>
+    <ClInclude Include="s_web_scanner.h">
+      <Filter>local modules\scanner modules</Filter>
+    </ClInclude>
+    <ClInclude Include="m_memcache_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="m_mssql_exp.h">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClInclude>
+    <ClInclude Include="m_http_api.h">
+      <Filter>local modules\api modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="m_http_api.cpp">
-      <Filter>local modules\api modules</Filter>
     </ClCompile>
     <ClCompile Include="m_base_api.cpp">
       <Filter>local modules\api modules</Filter>
@@ -172,6 +244,72 @@
     </ClCompile>
     <ClCompile Include="s_wmi_scanner.cpp">
       <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="CJsonObject.cpp">
+      <Filter>local modules\common modules</Filter>
+    </ClCompile>
+    <ClCompile Include="cJSON.c">
+      <Filter>local modules\common modules</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto_Base64.cpp">
+      <Filter>local modules\crypto modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_w_base_api.cpp">
+      <Filter>local modules\api modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_ftp_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="m_rsync_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="m_base_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="m_mongodb_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="m_dubbo_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="m_redis_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="m_ldap_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="m_javarmi_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="m_zookeeper_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="m_smb_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="c_service.cpp">
+      <Filter>local modules\scanner modules\service</Filter>
+    </ClCompile>
+    <ClCompile Include="s_net_scanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_mysql_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="crypto_Sha1.cpp">
+      <Filter>local modules\crypto modules</Filter>
+    </ClCompile>
+    <ClCompile Include="s_web_scanner.cpp">
+      <Filter>local modules\scanner modules</Filter>
+    </ClCompile>
+    <ClCompile Include="m_memcache_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="m_mssql_exp.cpp">
+      <Filter>local modules\scanner modules\service\exploit</Filter>
+    </ClCompile>
+    <ClCompile Include="m_http_api.cpp">
+      <Filter>local modules\api modules</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

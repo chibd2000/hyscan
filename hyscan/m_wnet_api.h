@@ -1,6 +1,6 @@
 #ifndef WNETAPI_H_H
 #define WNETAPI_H_H
-#include "m_base_api.h"
+#include "m_w_base_api.h"
 #include "Tools.h"
 #include <lm.h>
 #pragma comment(lib, "Netapi32.lib")
@@ -24,7 +24,7 @@ enum IPC_ERROR{
 	IPC_PASS_EXPIRE = 0X8C2
 };
 	
-class WNET_API: public MYAPI
+class WNET_API : public m_w_base_api
 {
 private:
 	string username;

@@ -1,16 +1,20 @@
 #ifndef THREADPOOL_H_H
 #define THREADPOOL_H_H
-#define THREAD_CLOSE_NUM 10
+#define THREAD_CLOSE_NUM 5
 #include "public.h"
 #include <condition_variable>
-
+#include "c_service.h"
 using callbackFunc = void(*)(string& arg); // scanner
-using weakCallbackFunc = void(*)(string& arg1, string& arg2, string& arg3, string& arg4, string& arg5); // scanner
+using callbackFunc2param = void(*)(string& arg, string& arg2); // scanner
+using callbackFunc3param = void(*)(string& arg, string& arg2, string& arg3); // scanner
+using callbackFunc4param = void(*)(string& arg, string& arg2, string& arg3, string& arg4); // scanner
+using weakCallbackFunc = void(*)(string& arg1, string& arg2, string& arg3, string& arg4, string& arg5);
 
 class Task{
 public:
 	callbackFunc func;
 	weakCallbackFunc weakFunc;
+	callbackFunc2param param2Func;
 	map<string, string>* mArgs;
 public:
 	Task(){
@@ -18,10 +22,16 @@ public:
 		this->mArgs = nullptr;
 	}
 
+	// 到时候可以改，应该要改为模板函数来写，这样就不需要根据参数不同来添加函数了
 	Task(callbackFunc func, map<string, string>* mArgs){
 		this->func = func;
 		this->mArgs = mArgs;
 	}  
+
+	Task(callbackFunc2param func, map<string, string>* mArgs){
+		this->param2Func = func;
+		this->mArgs = mArgs;
+	}
 
 	Task(weakCallbackFunc func, map<string, string>* mArgs){
 		this->weakFunc = func;
@@ -64,6 +74,14 @@ public:
 
 	// add
 	void addTask(callbackFunc func, map<string, string>* mArgs){
+		queueMutex.lock();
+		Task task(func, mArgs);
+		this->taskQueue.push(task);
+		queueMutex.unlock();
+	}
+
+	// add
+	void addTask(callbackFunc2param func, map<string, string>* mArgs){
 		queueMutex.lock();
 		Task task(func, mArgs);
 		this->taskQueue.push(task);
@@ -135,6 +153,7 @@ public:
 	
 	void addTask(Task task);
 	void addTask(callbackFunc func, map<string, string>* mArgs);
+	void addTask(callbackFunc2param func, map<string, string>* mArgs);
 	void addTask(weakCallbackFunc func, map<string, string>* mArgs);
 	//////
 	Task getTask();

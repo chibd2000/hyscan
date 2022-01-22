@@ -24,7 +24,7 @@ void WinrmScanner::check(string& ipAddr){
 					if (!tcpClient.receiveData(clientSocket, receiveData))
 					{
 						NtlmInfo ntlmInfo;
-						ZeroMemory(&ntlmInfo, sizeof(NtlmInfo));
+						RtlZeroMemory(&ntlmInfo, sizeof(NtlmInfo));
 						memcpy(ntlmInfo.ipAddr, ipAddr.c_str(), 0x10); // 111.111.111.111
 						NtlmParser::parser(receiveData, &ntlmInfo, BASE_WMI_NTLMSSP);
 						closesocket(clientSocket);
