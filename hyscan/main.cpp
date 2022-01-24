@@ -123,9 +123,20 @@ vector<string> getPortList(string portList){
 	return vPort;
 }
 
+void getNtlmInfoResult(){
+	for (UINT i = 0; i < g_vNtlmInfo.size(); i++)
+	{
+		printf("[+] %s\n", g_vNtlmInfo[i].ipAddr);
+		wprintf(L"\tMACHINE_NAME: %s\n", g_vNtlmInfo[i].MACHINE_NAME);
+		wprintf(L"\tNETBIOS_COMPUTER_NAME[0]: %s\n", g_vNtlmInfo[i].NETBIOS_ATTR[0].NETBIOS_COMPUTER_NAME);
+		wprintf(L"\tNETBIOS_COMPUTER_NAME[1]: %s\n", g_vNtlmInfo[i].NETBIOS_ATTR[1].NETBIOS_COMPUTER_NAME);
+		wprintf(L"\tDNS_COMPUTER_NAME[0]: %s\n", g_vNtlmInfo[i].DNS_ATTR[0].DNS_COMPUTER_NAME);
+		wprintf(L"\tDNS_COMPUTER_NAME[1]: %s\n", g_vNtlmInfo[i].DNS_ATTR[1].DNS_COMPUTER_NAME);
+	}
+}
+
 int main(int argc, char* argv[]){
 	getBanner();
-	////////////
 	cmdline::parser cParser;
 	cParser.add<string>("ip", '\0', "for example", false, "192.168.1.1");
 	cParser.add<string>("cidr", '\0', "for example", false, "192.168.1.1/24");
@@ -139,11 +150,13 @@ int main(int argc, char* argv[]){
 	cParser.add<string>("pcname", '\0', "prepare for delegation attack. for example", false, "test123");
  
 	cParser.add<string>("scantype", '\0', "for example", false, "ntlmscan/weakscan/ldapscan/oxidscan/portscan/webscan",
-		cmdline::oneof<string>("ntlmscan", "weakscan", "ldapscan", "oxidscan", "portscan", "webscan"));
+		cmdline::oneof<string>("ntlmscan", "weakscan", "ldapscan", "oxidscan", "portscan", "webscan", "pthscan"));
 	cParser.add<string>("ntlmtype", '\0', "for example", false, "smb/wmi/winrm", 
 		cmdline::oneof<string>("smb", "wmi", "winrm"));
-	cParser.add<string>("ldaptype", '\0', "for example", false, "searchDelegation/searchGPO/RBCD/searchFileServer/searchDnsRecord/searchTrustDomain",
-		cmdline::oneof<string>("searchDelegation", "searchGPO", "RBCD", "searchFileServer", "searchDnsRecord", "searchTrustDomain"));
+	cParser.add<string>("pthtype", '\0', "for example", false, "smb/wmi",
+		cmdline::oneof<string>("smb", "wmi"));
+	cParser.add<string>("ldaptype", '\0', "for example", false, "searchDelegation/searchGPO/RBCD/searchDomainFileServer/searchDnsRecord/searchTrustDomain/searchLAPs/addComputer/addDnsRecord",
+		cmdline::oneof<string>("searchDelegation", "searchGPO", "RBCD", "searchDomainFileServer", "searchDnsRecord", "searchTrustDomain", "searchLAPs", "addComputer", "addDnsRecord"));
 
 	cParser.add<int>("thread", '\0', "thread number", false, 50, cmdline::range(1, 500));
 	
@@ -180,17 +193,15 @@ int main(int argc, char* argv[]){
 						exit(0);
 					}
 					m_multi.startWork();
-					m_multi.getNtlmInfoResult();
+					getNtlmInfoResult();
 				}else if (cParser.exist("ip")){
-					// cidr or ip
-					m_multi_framework m_multi(cParser.get<int>("thread"));
-					map<string, string>* mArgs = new map<string, string>{ { "arg1", cParser.get<string>("ip") } };
+					string ipAddr = cParser.get<string>("ip");
 					// ntlm type
 					if (cParser.get<string>("ntlmtype") == "wmi"){
-						m_multi.addTask(WMIScanner::check, mArgs);
+						WMIScanner::check(ipAddr);
 					}
 					else if (cParser.get<string>("ntlmtype") == "smb"){
-						m_multi.addTask(SMBScanner::check, mArgs);
+						SMBScanner::check(ipAddr);
 					}
 					else if (cParser.get<string>("ntlmtype") == "winrm"){
 						exit(0);
@@ -198,37 +209,83 @@ int main(int argc, char* argv[]){
 					else{
 						exit(0);
 					}
-					m_multi.startWork();
-					m_multi.getNtlmInfoResult();
+					getNtlmInfoResult();
 				}
-				exit(0);
+			}
+			else if (cParser.get<string>("scantype") =="pthscan"){
+				if (cParser.exist("cidr")){
+					DWORD startIp = 0;
+					DWORD lastIp = 0;
+					sscanf(cParser.get<string>("cidr").c_str(), "%hhu.%hhu.%hhu.%hhu/%hhu", &b[0], &b[1], &b[2], &b[3], &b[4]);
+					if (b[4] > 32){ exit(0); }
+					getIpList(&startIp, &lastIp);
+					DWORD i, j;
+
+					////////////////////////////////
+					if (cParser.get<string>("pthtype") == "smb"){
+						m_multi_framework m_multi2(cParser.get<int>("thread"));
+						for (i = startIp; i <= lastIp; i++){
+							map<string, string>* mArgs = new map<string, string>{ { "arg1", int2ip(i) } };
+							m_multi2.addTask(SMBScanner::pth, mArgs);
+						}
+						m_multi2.startWork();
+					}
+					else if (cParser.get<string>("pthtype") == "wmi"){
+						// WMI的话先进行存活探测
+						m_multi_framework m_multi(cParser.get<int>("thread"));
+						for (i = startIp; i <= lastIp; i++){
+							map<string, string>* mArgs = new map<string, string>{ { "arg1", int2ip(i) } };
+							m_multi.addTask(s_net_scanner::checkAlive, mArgs);
+						}
+						m_multi.startWork();
+						// 不能使用多线程，COM组件多线程有问题
+						for (i = 0; i<g_vAliveIp.size(); i++){
+							WMIScanner::pth(g_vAliveIp[i]);
+						}
+					}
+				}
+				else if (cParser.exist("ip")){
+					string ipAddr = cParser.get<string>("ip");
+					if (cParser.get<string>("pthtype") == "smb"){
+						SMBScanner::pth(ipAddr);
+					}
+					else if (cParser.get<string>("pthtype") == "wmi"){
+						WMIScanner::pth(ipAddr);
+					}
+				}
 			}
 			else if (cParser.get<string>("scantype") == "weakscan"){
-				m_multi_framework m_multi(cParser.get<int>("thread"));
-				wstring dcipString = string2Wstring(cParser.get<string>("dc"));
-				vector<wstring> vComputerMembers = WNET_API::getDomainGroupMembers(dcipString.c_str(), L"Domain Computers");
-				vector<wstring> vControllerMembers = WNET_API::getDomainGroupMembers(dcipString.c_str(), L"Domain Controllers");
-				vector<wstring> vMembers;
-				vMembers.insert(vMembers.end(), vComputerMembers.begin(), vComputerMembers.end());
-				vMembers.insert(vMembers.end(), vControllerMembers.begin(), vControllerMembers.end());
-				for (DWORD i = 0; i<vMembers.size(); i++){
-					map<string, string>* mArgs = new map<string, string>{
-						{ "arg1", wchar2Char((WCHAR*)vMembers[i].c_str()) },
-						{ "arg2", cParser.get<string>("domainName") },
-						{ "arg3", cParser.get<string>("domainUsername") },
-						{ "arg4", cParser.get<string>("domainPassword") },
-						{ "arg5", cParser.get<string>("personalPassword") }
-					};
-					m_multi.addTask(WeakScanner::check, mArgs);
+				if (cParser.exist("dc") && cParser.exist("domainName") && cParser.exist("domainUsername") && cParser.exist("domainPassword")
+					&& cParser.exist("domainPersonalPassword")){
+					string domainPassword = cParser.get<string>("domainPassword");
+					if (domainPassword == "null"){domainPassword = "";}
+					m_multi_framework m_multi(cParser.get<int>("thread"));
+					wstring dcipString = string2Wstring(cParser.get<string>("dc"));
+					vector<wstring> vComputerMembers = WNET_API::getDomainGroupMembers(dcipString.c_str(), L"Domain Computers");
+					vector<wstring> vControllerMembers = WNET_API::getDomainGroupMembers(dcipString.c_str(), L"Domain Controllers");
+					vector<wstring> vMembers;
+					vMembers.insert(vMembers.end(), vComputerMembers.begin(), vComputerMembers.end());
+					vMembers.insert(vMembers.end(), vControllerMembers.begin(), vControllerMembers.end());					
+					for (DWORD i = 0; i<vMembers.size(); i++){
+						map<string, string>* mArgs = new map<string, string>
+						{
+							{ "arg1", wchar2Char((WCHAR*)vMembers[i].c_str()) },
+							{ "arg2", cParser.get<string>("domainName") },
+							{ "arg3", cParser.get<string>("domainUsername") },
+							{ "arg4", domainPassword },
+							{ "arg5", cParser.get<string>("domainPersonalPassword") }
+						};
+						m_multi.addTask(WeakScanner::check, mArgs);
+					}
+					m_multi.startWork();
 				}
-				m_multi.startWork();
 			}
 			else if (cParser.get<string>("scantype") == "ldapscan"){
 				if (cParser.exist("dc") && cParser.exist("domainName") && cParser.exist("ldaptype")){
 					if (cParser.get<string>("ldaptype") == "searchDelegation"){
 						LdapScanner::searchDelegation(cParser.get<string>("dc"), cParser.get<string>("domainName"));
 					}
-					else if (cParser.get<string>("ldaptype") == "updateResourceBasedConstrainedDelegation"){
+					else if (cParser.get<string>("ldaptype") == "RBCD"){
 						if (cParser.exist("pcname")){
 							LdapScanner::updateResourceBasedConstrainedDelegation(
 								cParser.get<string>("dc"), 
@@ -241,7 +298,7 @@ int main(int argc, char* argv[]){
 					}
 					else if (cParser.get<string>("ldaptype") == "addComputer"){
 						LdapScanner::addComputer(cParser.get<string>("dc"), cParser.get<string>("domainName"),
-							cParser.get<string>("pcname"), cParser.get<string>("dn"));
+							cParser.get<string>("pcname"));
 					}
 					else if (cParser.get<string>("ldaptype") == "searchDnsRecord"){
 						LdapScanner::searchDnsRecord(cParser.get<string>("dc"), cParser.get<string>("domainName"));
@@ -263,13 +320,6 @@ int main(int argc, char* argv[]){
 						LdapScanner::searchTrustDomain(cParser.get<string>("dc"), cParser.get<string>("domainName"));
 					}
 				}
-				//	LDAP_API ldapTest("administrator", "admin@123","192.168.4.11", "hengge.com");
-				//LDAP_API ldapTest("192.168.4.11", "hengge.com");
-				//	ldapTest.updateResourceBasedConstrainedDelegation("test333");
-				//	ldapTest.searchDomainFileServer();
-				//	ldapTest.searchGPO();
-				//	ldapTest.searchDnsRecord();
-				//	ldapTest.searchTrustDomain();
 			}
 			else if (cParser.get<string>("scantype") == "oxidscan"){
 				if (cParser.exist("cidr")){
@@ -289,10 +339,8 @@ int main(int argc, char* argv[]){
 					m_multi.startWork();
 				}
 				else if (cParser.exist("ip")){
-					m_multi_framework m_multi(cParser.get<int>("thread"));
-					map<string, string>* mArgs = new map<string, string>{ { "arg1", cParser.get<string>("ip") } };
-					m_multi.addTask(OXIDScanner::check, mArgs);
-					m_multi.startWork();
+					string ipAddr = cParser.get<string>("ip");
+					OXIDScanner::check(ipAddr);
 				}
 			}
 			else if (cParser.get<string>("scantype") == "portscan"){
@@ -517,5 +565,6 @@ int main(int argc, char* argv[]){
 			}
 		}
 	}
+	cout << "The run time is:" << (double)clock() / CLOCKS_PER_SEC << "s" << endl;
 	return 0;
 }

@@ -33,9 +33,9 @@ void LdapScanner::addDnsRecord(string serverName, string domainName, string dnsN
 }
 
 
-void LdapScanner::addComputer(string serverName, string domainName, string pcName, string dn){
+void LdapScanner::addComputer(string serverName, string domainName, string pcName){
 	LDAP_API ldapApi(serverName, domainName);
-	ldapApi.addComputer(pcName, dn);
+	ldapApi.addComputer(pcName);
 }
 
 void LdapScanner::searchDomainFileServer(string serverName, string domainName){

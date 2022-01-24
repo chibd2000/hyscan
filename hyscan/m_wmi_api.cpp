@@ -22,24 +22,8 @@ HRESULT WMIAPI::init(){
 	hr = CoInitializeEx(0, COINIT_MULTITHREADED);
 	if (SUCCEEDED(hr))
 	{
-		hr = CoInitializeSecurity(NULL,
-			-1,
-			NULL,
-			NULL,
-			RPC_C_AUTHN_LEVEL_PKT,
-			RPC_C_IMP_LEVEL_IMPERSONATE,
-			NULL,
-			EOAC_NONE,
-			NULL);
-		if (SUCCEEDED(hr)){
-			//二、创建一个WMI命名空间连接，创建一个CLSID_WbemLocator对象  
-			hr = CoCreateInstance(CLSID_WbemLocator,
-				0,
-				CLSCTX_INPROC_SERVER,
-				IID_IWbemLocator,
-				(LPVOID*)&pWbemLoc);
-			return hr;
-		}
+		// 设置进程的安全级别，（调用COM组件时在初始化COM之后要调用CoInitializeSecurity设置进程安全级别，否则会被系统识别为病毒）  
+		hr = CoInitializeSecurity(NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_DEFAULT, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE, NULL);
 	}
 	return hr;
 }
@@ -54,7 +38,6 @@ void WMIAPI::release(){
 	{
 		pWbemLoc->Release();
 		pWbemLoc = NULL;
-
 	}
 	if (pEnumClsObj != NULL)
 	{
@@ -64,30 +47,39 @@ void WMIAPI::release(){
 	CoUninitialize();
 }
 
-void WMIAPI::connect(string& machineName){
+HRESULT WMIAPI::connect(string& ipAddr){
 	HRESULT hr;
-	wstring connectAddr;
-	hr = this->init();
-	if (SUCCEEDED(hr) || RPC_E_CHANGED_MODE == hr)
-	{
-		//设置进程的安全级别，（调用COM组件时在初始化COM之后要调用CoInitializeSecurity设置进程安全级别，否则会被系统识别为病毒）  
-		connectAddr.append(L"\\\\");
-		connectAddr.append(string2Wstring(machineName));
-		connectAddr.append(L"\\root\\CIMV2");
-		hr = pWbemLoc->ConnectServer(
-			(BSTR)connectAddr.c_str(),  // Namespace
-			NULL,          // Userid
-			NULL,           // PW
-			NULL,           // Locale
-			0,              // flags
-			NULL,           // Authority
-			NULL,           // Context
-			&pWbemSvc
-			);
+	do{
+		hr = this->init();
 		if (SUCCEEDED(hr)){
-			cout << "\t[+] " << machineName << " Connection success" << endl;
+			wstring connectAddr;
+			connectAddr.append(L"\\\\");
+			connectAddr.append(string2Wstring(ipAddr).data());
+			connectAddr.append(L"\\root\\cimv2");
+			hr = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER, IID_IWbemLocator, (LPVOID*)&pWbemLoc);
+			if (SUCCEEDED(hr)){
+				hr = pWbemLoc->ConnectServer((WCHAR*)connectAddr.c_str(), NULL, NULL, 0, NULL, 0, 0, &pWbemSvc);
+				if (SUCCEEDED(hr)){
+					this->release();
+					return 1;
+				}
+				else{
+					this->release();
+					return 0;
+				}
+			}
+			else{
+				this->release();
+				return 0;
+			}
 		}
-	}
+		else{
+			this->release();
+			return 0;
+		}
+	} while (false);
+
+	return 0;
 }
 
 void WMIAPI::exec(string& command){

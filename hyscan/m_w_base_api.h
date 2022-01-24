@@ -9,6 +9,6 @@ public:
 	~m_w_base_api();
 	string ConvertToStringSid(const unsigned char* bsid, const int len);
 	string sid2user(PSID pSid, LPCTSTR lpSystemName);
-	string getCurrentUserSid();
+	string getCurrentUserSid(string& doaminName);
 };
 #endif

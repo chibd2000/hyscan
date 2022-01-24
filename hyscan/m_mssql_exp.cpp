@@ -11,7 +11,7 @@ m_mssql_exp::~m_mssql_exp()
 {
 }
 void m_mssql_exp::checkServiceIsVuln(){
-	if (!s_net_scanner::checkAliveReturn(this->portService.serviceIpAddr)){
+	if (!checkAliveReturn(this->portService.serviceIpAddr)){
 		this->checkWeakpass();
 	}
 }

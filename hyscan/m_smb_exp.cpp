@@ -14,7 +14,7 @@ m_smb_exp::~m_smb_exp()
 }
 
 void m_smb_exp::checkServiceIsVuln(){
-	if (!s_net_scanner::checkAliveReturn(this->portService.serviceIpAddr)){
+	if (!checkAliveReturn(this->portService.serviceIpAddr)){
 		this->checkEternalBlue();
 		this->checkSMBGhost();
 	}

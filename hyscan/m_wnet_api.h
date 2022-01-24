@@ -31,7 +31,7 @@ private:
 	string password;
 public:
 	WNET_API();
-	DWORD openConnectBySelf(string serverName);
+	DWORD openConnectBySelf(string& serverName);
 	DWORD openConnectByUserPass(string serverName, string username, string password);
 	void getLoggedUsers(wstring serverName);
 	static vector<wstring> getDomainGroupMembers(wstring serverName, wstring groupName);

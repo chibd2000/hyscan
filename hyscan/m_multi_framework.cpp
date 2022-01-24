@@ -282,16 +282,4 @@ void m_multi_framework::startWork(){
 	this->threadPool->bShutDown = TRUE;
 }
 
-void m_multi_framework::getNtlmInfoResult(){
-	for (UINT i = 0; i < g_vNtlmInfo.size(); i++)
-	{
-		printf("[+] %s\n", g_vNtlmInfo[i].ipAddr);
-		wprintf(L"\tMACHINE_NAME: %s\n", g_vNtlmInfo[i].MACHINE_NAME);
-		wprintf(L"\tNETBIOS_COMPUTER_NAME[0]: %s\n", g_vNtlmInfo[i].NETBIOS_ATTR[0].NETBIOS_COMPUTER_NAME);
-		wprintf(L"\tNETBIOS_COMPUTER_NAME[1]: %s\n", g_vNtlmInfo[i].NETBIOS_ATTR[1].NETBIOS_COMPUTER_NAME);
-		wprintf(L"\tDNS_COMPUTER_NAME[0]: %s\n", g_vNtlmInfo[i].DNS_ATTR[0].DNS_COMPUTER_NAME);
-		wprintf(L"\tDNS_COMPUTER_NAME[1]: %s\n", g_vNtlmInfo[i].DNS_ATTR[1].DNS_COMPUTER_NAME);
-	}
-}
-
 

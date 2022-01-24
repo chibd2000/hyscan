@@ -14,7 +14,7 @@ m_redis_exp::~m_redis_exp()
 }
 
 void m_redis_exp::checkServiceIsVuln(){
-	if (!s_net_scanner::checkAliveReturn(this->portService.serviceIpAddr)){
+	if (!checkAliveReturn(this->portService.serviceIpAddr)){
 		this->checkWeakpass();
 		this->checkUnauth();
 	}

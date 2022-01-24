@@ -41,40 +41,43 @@ SMBScanner::SMBScanner()
 
 SMBScanner::~SMBScanner()
 {
+	
 }
 
 
 void SMBScanner::check(string& ipAddr){
-	SOCKET clientSocket;
-	TcpClient tcpClient;
-	string receiveData;
-	int iPacketSize;
-	if (!tcpClient.initWinSock())
-	{
-		if (!tcpClient.createSocket(clientSocket))
+	if (!s_net_scanner::checkAliveReturn(ipAddr)){
+		SOCKET clientSocket;
+		TcpClient tcpClient;
+		string receiveData;
+		int iPacketSize;
+		if (!tcpClient.initWinSock())
 		{
-			if (!tcpClient.connectSocket(clientSocket, ipAddr.c_str(), SMBPORT))
+			if (!tcpClient.createSocket(clientSocket))
 			{
-				if (!tcpClient.sendData(clientSocket, string((char*)NTLMSSP_SMB_NEGOTIATE, sizeof(NTLMSSP_SMB_NEGOTIATE) / sizeof(NTLMSSP_SMB_NEGOTIATE[0]))))
+				if (!tcpClient.connectSocket(clientSocket, ipAddr.c_str(), SMBPORT))
 				{
-					if (!tcpClient.receiveData(clientSocket, receiveData, &iPacketSize))
+					if (!tcpClient.sendData(clientSocket, string((char*)NTLMSSP_SMB_NEGOTIATE, sizeof(NTLMSSP_SMB_NEGOTIATE) / sizeof(NTLMSSP_SMB_NEGOTIATE[0]))))
 					{
-						receiveData.clear();
-						if (!tcpClient.sendData(clientSocket, string((char*)NTLMSSP_NEGOTIATE, sizeof(NTLMSSP_NEGOTIATE) / sizeof(NTLMSSP_NEGOTIATE[0]))))
+						if (!tcpClient.receiveData(clientSocket, receiveData, &iPacketSize))
 						{
-							if (!tcpClient.receiveData(clientSocket, receiveData, &iPacketSize))
+							receiveData.clear();
+							if (!tcpClient.sendData(clientSocket, string((char*)NTLMSSP_NEGOTIATE, sizeof(NTLMSSP_NEGOTIATE) / sizeof(NTLMSSP_NEGOTIATE[0]))))
 							{
-								NtlmInfo ntlmInfo;
-								RtlZeroMemory(&ntlmInfo, sizeof(NtlmInfo));
-								memcpy(ntlmInfo.ipAddr, ipAddr.c_str(), 0x10); // 111.111.111.111
-								if (receiveData.substr(BASE_SMB_NTLMSSP, 7) == NTLMSSP_SIGNTURE)
-									NtlmParser::parser(receiveData, &ntlmInfo, BASE_SMB_NTLMSSP);
-								else if (receiveData.substr(BASE_SMB_NTLMSSP + 2, 7) == NTLMSSP_SIGNTURE)
-									NtlmParser::parser(receiveData, &ntlmInfo, BASE_SMB_NTLMSSP+2);
-								closesocket(clientSocket);
-								g_vMutex.lock();
-								g_vNtlmInfo.push_back(ntlmInfo);
-								g_vMutex.unlock();
+								if (!tcpClient.receiveData(clientSocket, receiveData, &iPacketSize))
+								{
+									NtlmInfo ntlmInfo;
+									RtlZeroMemory(&ntlmInfo, sizeof(NtlmInfo));
+									memcpy(ntlmInfo.ipAddr, ipAddr.c_str(), 0x10); // 111.111.111.111
+									if (receiveData.substr(BASE_SMB_NTLMSSP, 7) == NTLMSSP_SIGNTURE)
+										NtlmParser::parser(receiveData, &ntlmInfo, BASE_SMB_NTLMSSP);
+									else if (receiveData.substr(BASE_SMB_NTLMSSP + 2, 7) == NTLMSSP_SIGNTURE)
+										NtlmParser::parser(receiveData, &ntlmInfo, BASE_SMB_NTLMSSP + 2);
+									closesocket(clientSocket);
+									g_vMutex.lock();
+									g_vNtlmInfo.push_back(ntlmInfo);
+									g_vMutex.unlock();
+								}
 							}
 						}
 					}
@@ -84,39 +87,11 @@ void SMBScanner::check(string& ipAddr){
 	}
 }
 
-void SMBScanner::pth(string& remoteName){
-	NETRESOURCE netResource;
-	RtlZeroMemory(&netResource, sizeof(NETRESOURCE));
-	string fmtRemoteName;
-	
-	fmtRemoteName.append("\\\\");
-	fmtRemoteName.append(remoteName);
-	fmtRemoteName.append("\\c$");
-	
-	cout << "[+] Calling WNetAddConnection2 with\n" << endl;
-	cout << "[+] RemoteName: " << remoteName.c_str() << endl;
-	
-	netResource.dwType = RESOURCETYPE_ANY;
-	netResource.lpLocalName = NULL;
-	netResource.lpRemoteName = (LPSTR)fmtRemoteName.c_str();
-	netResource.lpProvider = NULL;
-	
-	DWORD dwRet;
-	dwRet = WNetAddConnection2(&netResource, NULL, NULL, CONNECT_TEMPORARY);
-	switch(dwRet)
-	{
-	case IPC_SUCCESS:
-		cout << "\t[+] " << netResource.lpRemoteName << " Connection success" << endl;
-		WNetCancelConnection2(netResource.lpLocalName, CONNECT_UPDATE_PROFILE, TRUE);
-	case IPC_PRIVILEGE_ERROR:
-		cout << "\t[-] " << netResource.lpRemoteName << " The privilege wrong" << endl;
-	case IPC_NETWORK_ERROR:
-		cout << "\t[-] " << netResource.lpRemoteName << " The network name could not be found" << endl;
-	case IPC_USER_PASS_ERROR:
-		cout << "\t[-] " << netResource.lpRemoteName << " The username or password is incorrect" << endl;
-	case IPC_PASS_EXPIRE:
-		cout << "\t[-] " << netResource.lpRemoteName << " The password is expired" << endl;
-	default:
-		cout << "\t[-] " << netResource.lpRemoteName << " WNetAddConnection2 failed with error " << dwRet << endl;
+void SMBScanner::pth(string& ipAddr){
+	WNET_API wnetApi;
+	if (!s_net_scanner::checkAliveReturn(ipAddr)){
+		if (wnetApi.openConnectBySelf(ipAddr) == IPC_SUCCESS){
+			printf("[+] SMB PTH %s Successed\n", ipAddr.data());
+		}
 	}
 }

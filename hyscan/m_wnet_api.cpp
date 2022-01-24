@@ -10,9 +10,9 @@ WNET_API::~WNET_API()
 	
 }
 
-DWORD WNET_API::openConnectBySelf(string serverName){
+DWORD WNET_API::openConnectBySelf(string& serverName){
 	// cout << "[+] Calling WNetAddConnection2 with " << serverName << endl;
-
+	
 	NETRESOURCE netResource;
 	RtlZeroMemory(&netResource, sizeof(NETRESOURCE));
 	string fmtRemoteName;
@@ -32,8 +32,6 @@ DWORD WNET_API::openConnectBySelf(string serverName){
 }
 
 DWORD WNET_API::openConnectByUserPass(string serverName, string username, string password){
-	// cout << "[+] Calling WNetAddConnection2 with " << serverName << endl;
-
 	NETRESOURCE netResource;
 	RtlZeroMemory(&netResource, sizeof(NETRESOURCE));
 	string fmtRemoteName;
@@ -44,24 +42,33 @@ DWORD WNET_API::openConnectByUserPass(string serverName, string username, string
 	netResource.lpLocalName = NULL;
 	netResource.lpRemoteName = (LPSTR)fmtRemoteName.c_str();
 	netResource.lpProvider = NULL;
-
 	DWORD dwRet = WNetAddConnection2(&netResource, password.c_str(), username.c_str(), CONNECT_TEMPORARY);
+	// cout << dwRet << endl;
 	switch (dwRet)
 	{
 	case IPC_SUCCESS:
-		printf("[+] %s Connection success\n", netResource.lpRemoteName);
-		WNetCancelConnection2(netResource.lpLocalName, CONNECT_UPDATE_PROFILE, TRUE);
+		// printf("[+] %s Connection success\n", netResource.lpRemoteName);
 		this->closeConnection(fmtRemoteName);
+		break;
 	case IPC_PRIVILEGE_ERROR:
-		printf("\t[-] %s The privilege wrong\n", netResource.lpRemoteName);
+		printf("[-] %s The privilege wrong\n", netResource.lpRemoteName);
+		break;
+
 	case IPC_NETWORK_ERROR:
-		printf("\t[-] %s The network name could not be found\n", netResource.lpRemoteName);
+		printf("[-] %s The network name could not be found\n", netResource.lpRemoteName);
+		break;
+
 	case IPC_USER_PASS_ERROR:
-		printf("\t[-] %s The username or password is incorrect\n", netResource.lpRemoteName);
+		printf("[-] %s The username or password is incorrect\n", netResource.lpRemoteName);
+		break;
+
 	case IPC_PASS_EXPIRE:
-		printf("\t[-] %s The password is expired\n", netResource.lpRemoteName);
+		printf("[-] %s The password is expired\n", netResource.lpRemoteName);
+		break;
+
 	default:
-		printf("\t[-] %s WNetAddConnection2 failed with error\n", netResource.lpRemoteName);
+		//printf("[-] %s WNetAddConnection2 failed with error %d\n", netResource.lpRemoteName, GetLastError());
+		break;
 	}
 	
 	return dwRet;

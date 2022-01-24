@@ -14,7 +14,7 @@ m_memcache_exp::~m_memcache_exp()
 
 
 void m_memcache_exp::checkServiceIsVuln(){
-	if (!s_net_scanner::checkAliveReturn(this->portService.serviceIpAddr)){
+	if (!checkAliveReturn(this->portService.serviceIpAddr)){
 		this->checkUnauth();
 	}
 }

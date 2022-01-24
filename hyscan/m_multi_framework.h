@@ -25,6 +25,5 @@ public:
 	void startWork(); // 开启任务，线程堵塞
 	
 	////////////////////////////////////
-	void getNtlmInfoResult(); // ntlms type2 的结果获取
 };
 #endif

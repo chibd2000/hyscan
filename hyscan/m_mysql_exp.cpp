@@ -13,7 +13,7 @@ m_mysql_exp::~m_mysql_exp()
 }
 
 void m_mysql_exp::checkServiceIsVuln(){
-	if (!s_net_scanner::checkAliveReturn(this->portService.serviceIpAddr)){
+	if (!checkAliveReturn(this->portService.serviceIpAddr)){
 		this->checkWeakpass();
 	}
 }
@@ -60,8 +60,8 @@ string m_mysql_exp::hex2String(const char* data, size_t length){
 void m_mysql_exp::checkWeakpass(){
 	string bugName = "weakpass";
 	vector<string> vUsername{ "root", "mysql", "test" };
-	vector<string> vPassword{ "root", "test", "mysql", "root123", "test123", "mysql123", "root@123", "test@123", "123456", "mysql@123",
-	"admin@123", "Aa@123456"};
+	vector<string> vPassword{ "root", "test", "mysql", "root123", "test123", "mysql123", 
+		"root@123", "test@123", "123456", "mysql@123", "admin@123", "Aa@123456"};
 	
 	char native_password[] = { 0x6d, 0x79, 0x73, 0x71, 0x6c, 0x5f, 0x6e, 0x61, 0x74, 0x69, 
 		0x76, 0x65, 0x5f, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x00 };

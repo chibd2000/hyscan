@@ -16,28 +16,30 @@ WMIScanner::~WMIScanner()
 }
 
 void WMIScanner::check(string& ipAddr){
-	SOCKET clientSocket;
-	TcpClient tcpClient;
-	string receiveData;
-	int packetSize;
-	if (!tcpClient.initWinSock())
-	{
-		if (!tcpClient.createSocket(clientSocket))
+	if (!s_net_scanner::checkAliveReturn(ipAddr)){
+		SOCKET clientSocket;
+		TcpClient tcpClient;
+		string receiveData;
+		int packetSize;
+		if (!tcpClient.initWinSock())
 		{
-			if (!tcpClient.connectSocket(clientSocket, ipAddr.c_str(), WMIPORT))
+			if (!tcpClient.createSocket(clientSocket))
 			{
-				if (!tcpClient.sendData(clientSocket, string((char*)NTLMSSP_NEGOTIATE, sizeof(NTLMSSP_NEGOTIATE) / sizeof(NTLMSSP_NEGOTIATE[0]))))
+				if (!tcpClient.connectSocket(clientSocket, ipAddr.c_str(), WMIPORT))
 				{
-					if (!tcpClient.receiveData(clientSocket, receiveData, &packetSize))
+					if (!tcpClient.sendData(clientSocket, string((char*)NTLMSSP_NEGOTIATE, sizeof(NTLMSSP_NEGOTIATE) / sizeof(NTLMSSP_NEGOTIATE[0]))))
 					{
-						NtlmInfo ntlmInfo;
-						RtlZeroMemory(&ntlmInfo, sizeof(NtlmInfo));
-						memcpy(ntlmInfo.ipAddr, ipAddr.c_str(), 0x10); // 111.111.111.111
-						NtlmParser::parser(receiveData, &ntlmInfo, BASE_WMI_NTLMSSP);
-						closesocket(clientSocket);
-						g_vMutex.lock();
-						g_vNtlmInfo.push_back(ntlmInfo);
-						g_vMutex.unlock();
+						if (!tcpClient.receiveData(clientSocket, receiveData, &packetSize))
+						{
+							NtlmInfo ntlmInfo;
+							RtlZeroMemory(&ntlmInfo, sizeof(NtlmInfo));
+							memcpy(ntlmInfo.ipAddr, ipAddr.c_str(), 0x10); // 111.111.111.111
+							NtlmParser::parser(receiveData, &ntlmInfo, BASE_WMI_NTLMSSP);
+							closesocket(clientSocket);
+							g_vMutex.lock();
+							g_vNtlmInfo.push_back(ntlmInfo);
+							g_vMutex.unlock();
+						}
 					}
 				}
 			}
@@ -47,6 +49,7 @@ void WMIScanner::check(string& ipAddr){
 
 void WMIScanner::pth(string& ipAddr){
 	WMIAPI wmiApi;
-	wmiApi.connect(ipAddr);
-	wmiApi.release();
+	if (wmiApi.connect(ipAddr)){
+		printf("[+] WMI PTH %s Successed\n", ipAddr.data());
+	}
 }

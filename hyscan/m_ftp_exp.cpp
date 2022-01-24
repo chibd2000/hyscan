@@ -14,7 +14,7 @@ m_ftp_exp::~m_ftp_exp()
 }
 
 void m_ftp_exp::checkServiceIsVuln(){
-	if (!s_net_scanner::checkAliveReturn(this->portService.serviceIpAddr)){
+	if (!checkAliveReturn(this->portService.serviceIpAddr)){
 		this->checkWeakpass();
 	}
 }
