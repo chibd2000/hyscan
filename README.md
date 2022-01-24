@@ -230,13 +230,13 @@ top1000：`hyscan.exe --scantype portscan --cidr  192.168.4.1/24 --port top1000 
 
 `hyscan.exe --scantype weakscan --dc 192.168.4.11 --domainName HENGGE --domainUsername HENGGE\ske --domainPassword admin@123456 --domainPersonalPassword admin@44332211`
 
-![weakscan-have-domainPassword](img/weakscan-have-domainPassword.png)
+![weakscan-have-domainPassword](img/weakscan-have-domainpassword.png)
 
 2、不知道当前拿下权限的域用户的密码，此时密码填写为`null`就好了
 
 `hyscan.exe --scantype weakscan --dc 192.168.4.11 --domainName HENGGE --domainUsername HENGGE\ske --domainPassword null --domainPersonalPassword admin@44332211`
 
-![weakscan-nohave-domainPassword](img/weakscan-nohave-domainPassword.png)
+![weakscan-nohave-domainPassword](img/weakscan-nohave-domainpassword.png)
 
 ### 基于 SMB/WMI PTH
 
