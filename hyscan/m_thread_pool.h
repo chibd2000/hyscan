@@ -15,6 +15,7 @@ public:
 	callbackFunc func;
 	weakCallbackFunc weakFunc;
 	callbackFunc2param param2Func;
+	callbackFunc3param param3Func;
 	map<string, string>* mArgs;
 public:
 	Task(){
@@ -30,6 +31,11 @@ public:
 
 	Task(callbackFunc2param func, map<string, string>* mArgs){
 		this->param2Func = func;
+		this->mArgs = mArgs;
+	}
+
+	Task(callbackFunc3param func, map<string, string>* mArgs){
+		this->param3Func = func;
 		this->mArgs = mArgs;
 	}
 
@@ -82,6 +88,14 @@ public:
 
 	// add
 	void addTask(callbackFunc2param func, map<string, string>* mArgs){
+		queueMutex.lock();
+		Task task(func, mArgs);
+		this->taskQueue.push(task);
+		queueMutex.unlock();
+	}
+
+	// add
+	void addTask(callbackFunc3param func, map<string, string>* mArgs){
 		queueMutex.lock();
 		Task task(func, mArgs);
 		this->taskQueue.push(task);
@@ -154,6 +168,7 @@ public:
 	void addTask(Task task);
 	void addTask(callbackFunc func, map<string, string>* mArgs);
 	void addTask(callbackFunc2param func, map<string, string>* mArgs);
+	void addTask(callbackFunc3param func, map<string, string>* mArgs);
 	void addTask(weakCallbackFunc func, map<string, string>* mArgs);
 	//////
 	Task getTask();

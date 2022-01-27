@@ -67,7 +67,7 @@ string m_w_base_api::sid2user(PSID pSid, LPCTSTR lpSystemName){
 	TCHAR pRefDomainName[64] = { 0 };
 	DWORD cbName = MAX_PATH;
 	DWORD cbRefDomainName = MAX_PATH;
-	if (LookupAccountSid(NULL, pSid, szUserBuffer, &cbName, pRefDomainName, &cbRefDomainName, &sidNameUse))
+	if (LookupAccountSid(lpSystemName, pSid, szUserBuffer, &cbName, pRefDomainName, &cbRefDomainName, &sidNameUse))
 		return string(szUserBuffer);
 	return "(null)";
 }

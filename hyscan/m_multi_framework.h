@@ -20,6 +20,7 @@ public:
 	////////////////////////////////////
 	void addTask(callbackFunc func, map<string, string>* mArgs); // 添加任务 1param
 	void addTask(callbackFunc2param func, map<string, string>* vArgs); // 添加任务 2param
+	void addTask(callbackFunc3param func, map<string, string>* mArgs); 
 	void addTask(weakCallbackFunc func, map<string, string>* mArgs); // 添加任务 5param
 	////////////////////////////////////
 	void startWork(); // 开启任务，线程堵塞

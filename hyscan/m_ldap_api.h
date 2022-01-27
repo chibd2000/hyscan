@@ -71,6 +71,7 @@ public:
 	vector<string> LDAP_API::search(string filterGrammar, string dn, PCHAR searchAttabuite[]);
 	void initBaseDn();
 	string addComputer(string pcName);
+	string addComputerUac8192(string pcName);
 	void addDnsRecord(string dnsName, string ipName);
 	vector<string> getObjectSid(string pcName);
 	string LDAP_API::getComputerDn();

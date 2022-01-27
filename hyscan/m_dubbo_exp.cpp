@@ -44,7 +44,6 @@ void m_dubbo_exp::checkUnauth(){
 							g_vServiceMutex.unlock();
 							closesocket(clientSocket);
 							return;
-
 						}
 					}
 				}

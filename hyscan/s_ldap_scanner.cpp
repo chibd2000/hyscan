@@ -38,6 +38,11 @@ void LdapScanner::addComputer(string serverName, string domainName, string pcNam
 	ldapApi.addComputer(pcName);
 }
 
+void LdapScanner::addComputerUac8192(string serverName, string domainName, string pcName){
+	LDAP_API ldapApi(serverName, domainName);
+	ldapApi.addComputerUac8192(pcName);
+}
+
 void LdapScanner::searchDomainFileServer(string serverName, string domainName){
 	LDAP_API ldapApi(serverName, domainName);
 	ldapApi.searchDomainFileServer();

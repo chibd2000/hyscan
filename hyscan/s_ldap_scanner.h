@@ -10,6 +10,7 @@ public:
 	static void searchDelegation(string serverName, string domainName);
 	static void searchGPO(string serverName, string domainName);
 	static void addComputer(string serverName, string domainName, string pcName);
+	static void addComputerUac8192(string serverName, string domainName, string pcName);
 	static void searchDomainFileServer(string serverName, string domainName);
 	static void searchDnsRecord(string serverName, string domainName);
 	static void searchTrustDomain(string serverName, string domainName);

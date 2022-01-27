@@ -89,6 +89,17 @@ void ThreadPool::addTask(callbackFunc2param func, map<string, string>* mArgs){
 	conditionVariable.notify_one();
 }
 
+//////////////////////////////////////
+void ThreadPool::addTask(callbackFunc3param func, map<string, string>* mArgs){
+	if (this->bShutDown){
+		return;
+	}
+
+	this->taskQueue->addTask(func, mArgs);
+	// 每次添加完任务的话都可以进行通知下消费者线程
+	conditionVariable.notify_one();
+}
+
 void ThreadPool::addTask(weakCallbackFunc func, map<string, string>* mArgs){
 	if (this->bShutDown){
 		return;
@@ -165,9 +176,22 @@ void ThreadPool::work(void* pool){
 				arg1 = it->second;
 			task.func(arg1);
 		}
+		else if (task.mArgs->size() == 3){
+			string arg1,arg2,arg3;
+			map<string, string>::iterator it = task.mArgs->find("arg1");
+			it = task.mArgs->find("arg1");
+			if (it != task.mArgs->end())
+				arg1 = it->second;
+			it = task.mArgs->find("arg2");
+			if (it != task.mArgs->end())
+				arg2 = it->second;
+			it = task.mArgs->find("arg3");
+			if (it != task.mArgs->end())
+				arg3 = it->second;
+			task.param3Func(arg1, arg2, arg3);
+		}
 		else if (task.mArgs->size() == 2){
-			string arg1;
-			string arg2;
+			string arg1, arg2;
 			map<string, string>::iterator it = task.mArgs->find("arg1");
 			it = task.mArgs->find("arg1");
 			if (it != task.mArgs->end())

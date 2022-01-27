@@ -171,6 +171,9 @@
     <ClInclude Include="m_http_api.h">
       <Filter>local modules\api modules</Filter>
     </ClInclude>
+    <ClInclude Include="samlib.h">
+      <Filter>local modules\api modules</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

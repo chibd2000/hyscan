@@ -270,6 +270,10 @@ void m_multi_framework::addTask(callbackFunc2param func, map<string, string>* mA
 	this->threadPool->addTask(func, mArgs);
 }
 
+void m_multi_framework::addTask(callbackFunc3param func, map<string, string>* mArgs){
+	this->threadPool->addTask(func, mArgs);
+}
+
 // 另一个就是弱口令的利用，那么这种的话就是 一个回调函数（参数为一个机器名称，自定义的一个弱口令）
 void m_multi_framework::addTask(weakCallbackFunc func, map<string, string>* mArgs){
 	this->threadPool->addTask(func, mArgs);

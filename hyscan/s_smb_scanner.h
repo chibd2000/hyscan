@@ -18,6 +18,7 @@ public:
 	SMBScanner();
 	static void check(string& ipAddr);
 	static void pth(string& ipAddr);
+	static void pth2(string& ipAddr, string& username, string& password);
 	~SMBScanner();
 };
 

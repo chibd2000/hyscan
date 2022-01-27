@@ -1,5 +1,7 @@
 #include "m_wnet_api.h"
 
+#define MAX_KEY_LENGTH 255
+
 WNET_API::WNET_API()
 {
 	
@@ -9,10 +11,8 @@ WNET_API::~WNET_API()
 {
 	
 }
-
+ 
 DWORD WNET_API::openConnectBySelf(string& serverName){
-	// cout << "[+] Calling WNetAddConnection2 with " << serverName << endl;
-	
 	NETRESOURCE netResource;
 	RtlZeroMemory(&netResource, sizeof(NETRESOURCE));
 	string fmtRemoteName;
@@ -63,7 +63,7 @@ DWORD WNET_API::openConnectByUserPass(string serverName, string username, string
 		break;
 
 	case IPC_PASS_EXPIRE:
-		printf("[-] %s The password is expired\n", netResource.lpRemoteName);
+		printf("[-] %s The password is expired, please use smbpasswd.\n", netResource.lpRemoteName);
 		break;
 
 	default:
@@ -88,7 +88,7 @@ DWORD WNET_API::closeConnection(string lpRemoteName){
 	}
 }
 
-void WNET_API::getLoggedUsers(wstring serverName){
+void WNET_API::getNetSession(wstring& serverName){
 	NET_API_STATUS nStatus;
 	LPSESSION_INFO_10 pBuf = NULL;
 	LPSESSION_INFO_10 pTmpBuf;
@@ -98,78 +98,163 @@ void WNET_API::getLoggedUsers(wstring serverName){
 	DWORD dwTotalEntries = 0;
 	DWORD dwResumeHandle = 0;
 	DWORD i;
-	DWORD dwTotalCount = 0;
-	//LPTSTR pszServerName = NULL;
-	do // begin do
+
+	nStatus = NetSessionEnum((LPWSTR)serverName.c_str(), NULL, NULL, dwLevel, 
+		(LPBYTE*)&pBuf, 
+		dwPrefMaxLen,
+		&dwEntriesRead,
+		&dwTotalEntries,
+		&dwResumeHandle);
+
+	if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA))
 	{
-		nStatus = NetSessionEnum((LPWSTR)serverName.c_str(), NULL, NULL, dwLevel, (LPBYTE*)&pBuf, dwPrefMaxLen,
-			&dwEntriesRead,
-			&dwTotalEntries,
-			&dwResumeHandle);
-		
-		if ((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA))
+		if ((pTmpBuf = pBuf) != NULL)
 		{
-			if ((pTmpBuf = pBuf) != NULL)
+			wprintf(L"[+] \\\\%s\n", serverName.data());
+			for (i = 0; i < dwEntriesRead; i++)
 			{
-				//
-				// Loop through the entries.
-				//
-				for (i = 0; (i < dwEntriesRead); i++)
+
+				if (pTmpBuf == NULL)
 				{
-
-					if (pTmpBuf == NULL)
-					{
-						fprintf(stderr, "An access violation has occurred\n");
-						break;
-					}
-					//
-					// Print the retrieved data. 
-					//
-
-					//sprintf(url, "%ws -> %ws\n", pTmpBuf->sesi10_cname,pTmpBuf->sesi10_username);
-
-					SYSTEMTIME sys;
-					GetLocalTime(&sys);
-					char current_time[64] = { NULL };
-					sprintf(current_time, "%4d-%02d-%02d %02d:%02d:%02d ", sys.wYear, sys.wMonth, sys.wDay, sys.wHour, sys.wMinute, sys.wSecond);
-
-					printf("[%s]  [%ws]  [%ws]  [%ws]\n", current_time, serverName, pTmpBuf->sesi10_cname, pTmpBuf->sesi10_username);
-					/*
-					wprintf(L"\n\tClient: %s\n", pTmpBuf->sesi10_cname);
-					wprintf(L"\tUser:   %s\n", pTmpBuf->sesi10_username);
-					printf("\tActive: %d\n", pTmpBuf->sesi10_time);
-					printf("\tIdle:   %d\n", pTmpBuf->sesi10_idle_time);
-					*/
-					pTmpBuf++;
-					dwTotalCount++;
+					printf("[-] WNET_API::NetSessionEnum Error, The Error is %d\n", nStatus);
+					break;
 				}
+				
+				wprintf(L"\tClient:%s User:%s Active:%d \n", pTmpBuf->sesi10_cname, pTmpBuf->sesi10_username, pTmpBuf->sesi10_time);
+				pTmpBuf++;
+			}
+			if (pBuf != NULL){
+				NetApiBufferFree(pBuf);
 			}
 		}
-		//
-		// Otherwise, indicate a system error.
-		//
-		else
-			fprintf(stderr, "A system error has occurred: %d\n", nStatus);
-		//
-		// Free the allocated memory.
-		//
-		if (pBuf != NULL)
-		{
-			delete pBuf;
-			pBuf = NULL;
+	}
+}
+
+void WNET_API::getNetShare(wstring& serverName){
+	DWORD dwMaxLen = MAX_PREFERRED_LENGTH;
+	PSHARE_INFO_502 si502,pTmp;
+	DWORD dwEntriesRead;
+	DWORD dwTotalEntries;
+	DWORD dwResumeHandle;
+	NET_API_STATUS nStatus;
+	nStatus = NetShareEnum((LPWSTR)serverName.c_str(), 502, (LPBYTE*)&si502, dwMaxLen, &dwEntriesRead, &dwTotalEntries, &dwResumeHandle);
+	if (nStatus == ERROR_SUCCESS || nStatus == ERROR_MORE_DATA)
+	{
+		if (dwEntriesRead > 0){
+			wprintf(L"[+] \\\\%s\n", serverName.c_str());
+			pTmp = si502;
+			for (DWORD i = 0; i < dwEntriesRead; i++)
+			{
+				printf("\tshi502_netname:%s shi502_path:%s shi502_current_uses:%s\n", pTmp->shi502_netname, pTmp->shi502_path, pTmp->shi502_current_uses);
+				pTmp++;
+			}
+			NetApiBufferFree(si502);
 		}
 	}
-	// 
-	// Continue to call NetSessionEnum while 
-	//  there are more entries. 
-	// 
-	while (nStatus == ERROR_MORE_DATA); // end do
-
-	// Check again for an allocated buffer.
-	//
-	if (pBuf != NULL)
-		delete pBuf;
 }
+
+// enum HKU registry values来获取相关信息，用于低权限定位
+// 缺点就是PC机器用不了这种方法
+void WNET_API::getLoggedUsers(string& serverName){
+	// HKEY_USERS
+	HKEY hKey = NULL;
+	DWORD dwRet;
+	dwRet = RegConnectRegistry(serverName.c_str(), HKEY_USERS, &hKey);
+	if (dwRet != ERROR_SUCCESS)
+	{
+		printf("[-] WNET_API::RegConnectRegistry Failed, The Error is %d\n", dwRet);
+		return;
+	}
+	DWORD dwSubKeyNum;
+
+	dwRet = RegQueryInfoKey(hKey, NULL, NULL, NULL, &dwSubKeyNum, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+	if (dwRet != ERROR_SUCCESS){
+		printf("[-] WNET_API::RegQueryInfoKey Failed, The Error is %d\n", dwRet);
+		return;
+	}
+	
+	FILETIME ft;
+	TCHAR tChName[MAX_KEY_LENGTH] = { 0 };
+	DWORD dwChName;
+	vector<string> vLogged;
+	for (DWORD i = 0;i<dwSubKeyNum;i++){
+		dwChName = MAX_KEY_LENGTH;
+		dwRet = RegEnumKeyEx(hKey, i, tChName, &dwChName, NULL, NULL, NULL, &ft);
+		if (dwRet != ERROR_SUCCESS){
+			printf("[-] WNET_API::RegEnumKeyEx Failed, The Error is %d\n", dwRet);
+		}
+		if (regex_match(tChName, regex("S-1-5-21-[0-9]+-[0-9]+-[0-9]+-[0-9]+$"), regex_constants::format_first_only)){
+			vLogged.push_back(tChName);
+		}
+		RtlZeroMemory(tChName, 0);
+	}
+
+	RegCloseKey(hKey);
+	/// ---------------
+	//string logString;
+	printf("[+] \\\\%s\n", serverName.data());
+	//logString = "[+] \\\\" + serverName;
+	//printf("%s",logString.data());
+	//m_logger::pLogger->info(logString);
+
+	PSID pSid = NULL;
+	for each (string sidString in vLogged)
+	{
+		ConvertStringSidToSid(sidString.c_str(), &pSid);
+		string usernameString = sid2user(pSid, NULL);
+		printf("\t %s ---- %s\n", sidString.data(), usernameString.data());
+		//printf("%s")
+		//logString = "\t " + sidString + " ---- " + usernameString;
+		//printf("%s\n", logString.data());
+		//m_logger::pLogger->info(logString);
+	}
+}
+
+// @samlib @SAMR
+// @param serverName
+// @param groupName
+
+//vector<wstring> WNET_API::getLocalGroupMembersSamr(wstring serverName){
+	/*
+	vector<wstring> membersList;
+	UNICODE_STRING* pServerNameUnicodeString = NULL;
+	RtlInitUnicodeString(pServerNameUnicodeString, serverName.c_str());
+	SAMPR_HANDLE serverHandle;
+	NTSTATUS ntStatus;
+	ntStatus = SamConnect(pServerNameUnicodeString, &serverHandle, SAM_SERVER_CONNECT | SAM_SERVER_LOOKUP_DOMAIN, true);
+	if (!BCRYPT_SUCCESS(ntStatus)){
+		return membersList;
+	}
+
+	SAMPR_HANDLE domainHandle;
+	PPOLICY_ACCOUNT_DOMAIN_INFO domainInfo = NULL;
+	LSA_OBJECT_ATTRIBUTES ObjectAttributes = { 0 };
+	LSA_HANDLE hPolicy = NULL;
+
+	LsaOpenPolicy(NULL, &ObjectAttributes, POLICY_VIEW_LOCAL_INFORMATION, &hPolicy);
+	LsaQueryInformationPolicy(hPolicy, PolicyAccountDomainInformation, (PVOID*)&domainInfo);
+	ntStatus = SamOpenDomain(serverHandle, DOMAIN_ALL_ACCESS, domainInfo->DomainSid, &domainHandle);
+	if (!BCRYPT_SUCCESS(ntStatus)){
+		SamCloseHandle(serverHandle);
+		return membersList;
+	}
+	// SamOpenAlias(IN SAMPR_HANDLE DomainHandle, IN ACCESS_MASK DesiredAccess, IN DWORD AliasId, OUT SAMPR_HANDLE* AliasHandle);
+	SAMPR_HANDLE aliasHandle;
+	ntStatus = SamOpenAlias(domainHandle, STANDARD_RIGHTS_ALL, 544, &aliasHandle);
+	if (!BCRYPT_SUCCESS(ntStatus)){
+		SamCloseHandle(serverHandle);
+		SamCloseHandle(domainHandle);
+		return membersList;
+	}
+	SAMPR_HANDLE groupHandle;
+	ntStatus = SamOpenGroup(domainHandle, GROUP_ALL_ACCESS, 544, &groupHandle);
+	PSAMPR_GET_MEMBERS_BUFFER membersBuffer;
+	SamGetMembersInGroup(groupHandle, &membersBuffer);
+
+	////////
+
+	return membersList;*/
+//}
 
 /////////////////////// @ske大师兄
 // @param serverName
@@ -191,7 +276,7 @@ vector<wstring> WNET_API::getLocalGroupMembers(wstring serverName, wstring group
 		}
 		// cout << endl;
 	}else{
-		printf("[-] WNET_API::getLocalGroupMembers Error, The Error is %d\n", dwRet);
+		printf("[-] WNET_API::NetLocalGroupGetMembers Error, The Error is %d\n", dwRet);
 	}
 	return membersList;
 }
@@ -221,12 +306,11 @@ vector<wstring> WNET_API::getDomainGroupMembers(wstring serverName, wstring grou
 			// wcout << nameString << endl;
 			membersList.push_back(nameString.c_str());
 		}
-		
 		return membersList;
 	}
 	else
 	{
-		printf("[-] WNET_API::getDomainGroupMembers Error, The Error is %d\n", dwRet);
+		printf("[-] WNET_API::NetGroupGetUsers Error, The Error is %d\n", dwRet);
 		exit(-1);
 	}
 }

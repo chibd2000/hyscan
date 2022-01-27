@@ -1,6 +1,6 @@
 #include "m_multi_framework.h"
 #include "cmdline.h"
-
+// #include "m_logger.h"
 // test
 #define VERSION "1.0"
 #define NAME	"HYSCAN"
@@ -18,6 +18,7 @@ vector<PortService> g_vVulnServiceIpPort; // 存活主机开放端口可利用服务
 vector<ServiceVuln> g_vServiceVuln; // 存活主机开放端口可利用服务存在漏洞
 neb::CJsonObject g_portServiceJson; // default port service
 neb::CJsonObject g_portServiceBannerJson; //  port service banner
+
 //////////////////////////
 static unsigned char b[5];
 
@@ -149,14 +150,22 @@ int main(int argc, char* argv[]){
 	cParser.add<string>("domainPersonalPassword", '\0', "for example", false, "admin@112233");
 	cParser.add<string>("pcname", '\0', "prepare for delegation attack. for example", false, "test123");
  
-	cParser.add<string>("scantype", '\0', "for example", false, "ntlmscan/weakscan/ldapscan/oxidscan/portscan/webscan",
-		cmdline::oneof<string>("ntlmscan", "weakscan", "ldapscan", "oxidscan", "portscan", "webscan", "pthscan"));
+	cParser.add<string>("scantype", '\0', "for example", false, "ntlmscan/weakscan/ldapscan/oxidscan/portscan/webscan/netscan",
+		cmdline::oneof<string>("ntlmscan", "weakscan", "ldapscan", "oxidscan", "portscan", "webscan", "pthscan", "netscan"));
 	cParser.add<string>("ntlmtype", '\0', "for example", false, "smb/wmi/winrm", 
 		cmdline::oneof<string>("smb", "wmi", "winrm"));
-	cParser.add<string>("pthtype", '\0', "for example", false, "smb/wmi",
-		cmdline::oneof<string>("smb", "wmi"));
-	cParser.add<string>("ldaptype", '\0', "for example", false, "searchDelegation/searchGPO/RBCD/searchDomainFileServer/searchDnsRecord/searchTrustDomain/searchLAPs/addComputer/addDnsRecord",
-		cmdline::oneof<string>("searchDelegation", "searchGPO", "RBCD", "searchDomainFileServer", "searchDnsRecord", "searchTrustDomain", "searchLAPs", "addComputer", "addDnsRecord"));
+	
+	cParser.add<string>("nettype", '\0', "for example", false, "getNetSession/getLoggedUsers/getNetShare",
+		cmdline::oneof<string>("getNetSession", "getLoggedUsers", "getNetShare"));
+
+	cParser.add<string>("pthtype", '\0', "for example", false, "smb/wmi", cmdline::oneof<string>("smb", "wmi"));
+	cParser.add<string>("pthuser", '\0', "for example", false, "HENGGE\\ske");
+	cParser.add<string>("pthpass", '\0', "for example", false, "admin@123");
+	
+	cParser.add<string>("ldaptype", '\0', "for example", false, 
+		"searchDelegation/searchGPO/RBCD/searchDomainFileServer/searchDnsRecord/searchTrustDomain/searchLAPs/addComputer/addComputerUac8192/addDnsRecord",
+		cmdline::oneof<string>("searchDelegation", "searchGPO", "RBCD", "searchDomainFileServer", "searchDnsRecord", "searchTrustDomain", 
+		"searchLAPs", "addComputer", "addComputerUac8192", "addDnsRecord"));
 
 	cParser.add<int>("thread", '\0', "thread number", false, 50, cmdline::range(1, 500));
 	
@@ -219,28 +228,43 @@ int main(int argc, char* argv[]){
 					sscanf(cParser.get<string>("cidr").c_str(), "%hhu.%hhu.%hhu.%hhu/%hhu", &b[0], &b[1], &b[2], &b[3], &b[4]);
 					if (b[4] > 32){ exit(0); }
 					getIpList(&startIp, &lastIp);
-					DWORD i, j;
-
+					DWORD i;
 					////////////////////////////////
-					if (cParser.get<string>("pthtype") == "smb"){
-						m_multi_framework m_multi2(cParser.get<int>("thread"));
-						for (i = startIp; i <= lastIp; i++){
-							map<string, string>* mArgs = new map<string, string>{ { "arg1", int2ip(i) } };
-							m_multi2.addTask(SMBScanner::pth, mArgs);
+					if (cParser.exist("pthuser") && cParser.exist("pthpass")){
+						if (cParser.get<string>("pthtype") == "smb"){
+							m_multi_framework m_multi3(cParser.get<int>("thread"));
+							for (i = startIp; i <= lastIp; i++){
+								map<string, string>* mArgs = new map<string, string>{ 
+									{ "arg1", int2ip(i) },
+									{ "arg2", cParser.get<string>("pthuser")},
+									{ "arg3", cParser.get<string>("pthpass")}
+								};
+								m_multi3.addTask(SMBScanner::pth2, mArgs);
+							}
+							m_multi3.startWork();
 						}
-						m_multi2.startWork();
 					}
-					else if (cParser.get<string>("pthtype") == "wmi"){
-						// WMI的话先进行存活探测
-						m_multi_framework m_multi(cParser.get<int>("thread"));
-						for (i = startIp; i <= lastIp; i++){
-							map<string, string>* mArgs = new map<string, string>{ { "arg1", int2ip(i) } };
-							m_multi.addTask(s_net_scanner::checkAlive, mArgs);
+					else{
+						if (cParser.get<string>("pthtype") == "smb"){
+							m_multi_framework m_multi2(cParser.get<int>("thread"));
+							for (i = startIp; i <= lastIp; i++){
+								map<string, string>* mArgs = new map<string, string>{ { "arg1", int2ip(i) } };
+								m_multi2.addTask(SMBScanner::pth, mArgs);
+							}
+							m_multi2.startWork();
 						}
-						m_multi.startWork();
-						// 不能使用多线程，COM组件多线程有问题
-						for (i = 0; i<g_vAliveIp.size(); i++){
-							WMIScanner::pth(g_vAliveIp[i]);
+						else if (cParser.get<string>("pthtype") == "wmi"){
+							// WMI的话先进行存活探测
+							m_multi_framework m_multi(cParser.get<int>("thread"));
+							for (i = startIp; i <= lastIp; i++){
+								map<string, string>* mArgs = new map<string, string>{ { "arg1", int2ip(i) } };
+								m_multi.addTask(s_net_scanner::checkAlive, mArgs);
+							}
+							m_multi.startWork();
+							// 不能使用多线程，COM组件多线程有问题
+							for (i = 0; i<g_vAliveIp.size(); i++){
+								WMIScanner::pth(g_vAliveIp[i]);
+							}
 						}
 					}
 				}
@@ -297,8 +321,16 @@ int main(int argc, char* argv[]){
 						LdapScanner::updatePrivilege(cParser.get<string>("dc"), cParser.get<string>("domainName"));
 					}
 					else if (cParser.get<string>("ldaptype") == "addComputer"){
-						LdapScanner::addComputer(cParser.get<string>("dc"), cParser.get<string>("domainName"),
-							cParser.get<string>("pcname"));
+						if (cParser.exist("pcname")){
+							LdapScanner::addComputer(cParser.get<string>("dc"), cParser.get<string>("domainName"),
+								cParser.get<string>("pcname"));
+						}
+					}
+					else if (cParser.get<string>("ldaptype") == "addComputerUac8192"){
+						if (cParser.exist("pcname")){
+							LdapScanner::addComputerUac8192(cParser.get<string>("dc"), cParser.get<string>("domainName"),
+								cParser.get<string>("pcname"));
+						}
 					}
 					else if (cParser.get<string>("ldaptype") == "searchDnsRecord"){
 						LdapScanner::searchDnsRecord(cParser.get<string>("dc"), cParser.get<string>("domainName"));
@@ -361,6 +393,7 @@ int main(int argc, char* argv[]){
 					m_multi.startWork();
 					// 存活主机
 					cout << "--------------------------存活主机的地址--------------------------" << endl;
+					//m_logger::pLogger->info("--------------------------存活主机的地址--------------------------");
 					for (DWORD i = 0; i < g_vAliveIp.size(); i++){
 						cout << g_vAliveIp[i] << endl;
 					}
@@ -480,27 +513,35 @@ int main(int argc, char* argv[]){
 				}
 
 				// 存活主机
+				//m_logger::pLogger->info("--------------------------存活主机的地址--------------------------");
 				cout << "--------------------------存活主机的地址--------------------------" << endl;
 				for (DWORD i = 0; i < g_vAliveIp.size(); i++){
 					cout << g_vAliveIp[i] << endl;
 				}
+				//m_logger::pLogger->info("--------------------------主机开放的端口--------------------------");
 				cout << "--------------------------主机开放的端口--------------------------" << endl;
 				// 输出ip开放的端口
 				for (DWORD i = 0; i < g_vAliveIpPort.size(); i++){
 					if (g_vAliveIpPort[i].dwServiceStatus == SERVICE_NO_KNOWN){
+						//string info = g_vAliveIpPort[i].serviceIpAddr + ":" + to_string(g_vAliveIpPort[i].dwServicePort);
+						//m_logger::pLogger->info(info);
+						//cout << info << endl;
 						cout << g_vAliveIpPort[i].serviceIpAddr << ":" << g_vAliveIpPort[i].dwServicePort << endl;
 					}
 					else if (g_vAliveIpPort[i].dwServiceStatus == SERVICE_KNOW){
-						cout << g_vAliveIpPort[i].serviceIpAddr << ":" << g_vAliveIpPort[i].dwServicePort 
-							<< " " << g_vAliveIpPort[i].serviceNameString << endl;
+						cout << g_vAliveIpPort[i].serviceIpAddr << ":" << g_vAliveIpPort[i].dwServicePort <<
+							" " << g_vAliveIpPort[i].serviceNameString << endl;
+						//cout << info << endl;
 					}
 				}
+				//m_logger::pLogger->info("--------------------------可利用的服务端口--------------------------");
 				cout << "--------------------------可利用的服务端口--------------------------" << endl;
 				// 输出可利用的服务端口
 				for (DWORD i = 0; i < g_vVulnServiceIpPort.size(); i++){
-					cout << g_vVulnServiceIpPort[i].serviceIpAddr << ":" << g_vVulnServiceIpPort[i].dwServicePort 
-						<< " " << g_vVulnServiceIpPort[i].serviceNameString << endl;
+					cout << g_vVulnServiceIpPort[i].serviceIpAddr << ":" << g_vVulnServiceIpPort[i].dwServicePort << " " <<
+						g_vVulnServiceIpPort[i].serviceNameString;
 				}
+				//m_logger::pLogger->info("--------------------------存在漏洞的服务端口--------------------------");
 				cout << "--------------------------存在漏洞的服务端口--------------------------" << endl;
 				// 下面开始对能利用的进行利用操作
 				// transform(strTest.begin(), strTest.end(), strTest.begin(), toupper);
@@ -508,11 +549,13 @@ int main(int argc, char* argv[]){
 				for (DWORD i = 0; i < g_vServiceVuln.size(); i++){
 					if (g_vServiceVuln[i].bIsBug)
 					{
+						//m_logger::pLogger->info(g_vServiceVuln[i].bugInformation);
 						cout << g_vServiceVuln[i].bugInformation << endl;
 					}
 				}
 			}
 			else if (cParser.get<string>("scantype") == "webscan"){
+				//m_logger::pLogger->info("-------------s_web_scanner start---------------");
 				if (cParser.exist("cidr")){
 					m_multi_framework m_multi2(cParser.get<int>("thread"));
 					DWORD startIp = 0;
@@ -530,14 +573,12 @@ int main(int argc, char* argv[]){
 							cout << e.what() << endl;
 							exit(0);
 						}
-
 						for (i = startIp; i <= lastIp; i++){
 							for (j = 0; j < vPortList.size(); j++){
 								map<string, string>* mArgs = new map<string, string>{ { "arg1", int2ip(i) }, { "arg2", vPortList[j] } };
 								m_multi2.addTask(s_web_scanner::scan, mArgs);
 							}
 						}
-
 						// 开始处理任务
 						m_multi2.startWork();
 					}
@@ -562,9 +603,45 @@ int main(int argc, char* argv[]){
 					// 开始处理任务
 					m_multi2.startWork();
 				}
+				//m_logger::pLogger->info("-------------s_web_scanner end---------------");
+			}
+			else if (cParser.get<string>("scantype") == "netscan"){
+				//m_logger::pLogger->info("-------------s_net_scanner start---------------");
+				if (cParser.exist("cidr")){
+					m_multi_framework m_multi2(cParser.get<int>("thread"));
+					DWORD startIp = 0;
+					DWORD lastIp = 0;
+					sscanf(cParser.get<string>("cidr").c_str(), "%hhu.%hhu.%hhu.%hhu/%hhu", &b[0], &b[1], &b[2], &b[3], &b[4]);
+					if (b[4] > 32){ exit(0); }
+					getIpList(&startIp, &lastIp);
+					if (cParser.get<string>("nettype") == "getNetSession"){
+						for (DWORD i = startIp; i <= lastIp; i++){
+							map<string, string>* mArgs = new map<string, string>{ { "arg1", int2ip(i) } };
+							m_multi2.addTask(s_net_scanner::getNetSession, mArgs);
+						}
+					}
+					else if (cParser.get<string>("nettype") == "getNetShare"){
+						for (DWORD i = startIp; i <= lastIp; i++){
+							map<string, string>* mArgs = new map<string, string>{ { "arg1", int2ip(i) } };
+							m_multi2.addTask(s_net_scanner::getNetShare, mArgs);
+						}
+					}
+					else if (cParser.get<string>("nettype") == "getLoggedUsers"){
+						for (DWORD i = startIp; i <= lastIp; i++){
+							map<string, string>* mArgs = new map<string, string>{ { "arg1", int2ip(i) } };
+							m_multi2.addTask(s_net_scanner::getLoggedUsers, mArgs);
+						}
+					}
+					m_multi2.startWork();
+				}
+				else if (cParser.exist("ip")){
+
+				}
+				//m_logger::pLogger->info("-------------s_net_scanner end---------------");
 			}
 		}
 	}
 	cout << "The run time is:" << (double)clock() / CLOCKS_PER_SEC << "s" << endl;
+	//delete m_logger::pLogger;
 	return 0;
 }

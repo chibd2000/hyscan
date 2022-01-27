@@ -65,7 +65,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <IgnoreSpecificDefaultLibraries>
@@ -95,6 +95,7 @@
     <ClInclude Include="m_base_exp.h" />
     <ClInclude Include="c_service.h" />
     <ClInclude Include="m_zookeeper_exp.h" />
+    <ClInclude Include="samlib.h" />
     <ClInclude Include="s_kerberos_scanner.h" />
     <ClInclude Include="s_ldap_scanner.h" />
     <ClInclude Include="m_base_api.h" />

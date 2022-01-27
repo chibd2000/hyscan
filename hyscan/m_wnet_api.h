@@ -6,6 +6,12 @@
 #pragma comment(lib, "Netapi32.lib")
 
 /*
+#include "samlib.h"
+#pragma comment(lib, "samlib.lib")
+#pragma comment(lib, "ntdll.lib")
+*/
+
+/*
 错误号5，拒绝访问 ： 很可能你使用的用户不是管理员权限的，先提升权限；
 错误号51，Windows 无法找到网络路径 : 网络有问题；
 错误号53，找不到网络路径 ： ip地址错误；目标未开机；目标lanmanserver服务未启动；目标有防火墙（端口过滤）；
@@ -17,26 +23,26 @@
 */
 
 enum IPC_ERROR{
-	IPC_SUCCESS = 0x00,
-	IPC_PRIVILEGE_ERROR = 0x05,
-	IPC_NETWORK_ERROR = 0x43,
-	IPC_USER_PASS_ERROR = 0x52E,
-	IPC_PASS_EXPIRE = 0X8C2
+	IPC_SUCCESS = 0,
+	IPC_PRIVILEGE_ERROR = 5,
+	IPC_NETWORK_ERROR = 67,
+	IPC_USER_PASS_ERROR = 1326,
+	IPC_PASS_EXPIRE = 2242
 };
 	
 class WNET_API : public m_w_base_api
 {
-private:
-	string username;
-	string password;
 public:
 	WNET_API();
+	~WNET_API();
 	DWORD openConnectBySelf(string& serverName);
 	DWORD openConnectByUserPass(string serverName, string username, string password);
-	void getLoggedUsers(wstring serverName);
+	void getLoggedUsers(string& serverName);
+	void getNetSession(wstring& serverName);
+	void getNetShare(wstring& serverName);
 	static vector<wstring> getDomainGroupMembers(wstring serverName, wstring groupName);
 	static vector<wstring> getLocalGroupMembers(wstring serverName, wstring groupName);
+	//static vector<wstring> getLocalGroupMembersSamr(wstring serverName);
 	DWORD closeConnection(string lpRemoteName);
-	~WNET_API();
 };
 #endif

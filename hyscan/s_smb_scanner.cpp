@@ -95,3 +95,12 @@ void SMBScanner::pth(string& ipAddr){
 		}
 	}
 }
+
+void SMBScanner::pth2(string& ipAddr, string& username, string& password){
+	WNET_API wnetApi;
+	if (!s_net_scanner::checkAliveReturn(ipAddr)){
+		if (wnetApi.openConnectByUserPass(ipAddr, username, password) == IPC_SUCCESS){
+			printf("[+] SMB PTH %s Successed\n", ipAddr.data());
+		}
+	}
+}

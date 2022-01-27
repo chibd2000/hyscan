@@ -2,7 +2,7 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>--scantype weakscan --dc 192.168.4.11 --domainName HENGGE --domainUsername HENGGE\ske --domainPassword admin@123456 --domainPersonalPassword 123456</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>--scantype netscan --cidr 192.168.4.1/24</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup>
     <ShowAllFiles>false</ShowAllFiles>

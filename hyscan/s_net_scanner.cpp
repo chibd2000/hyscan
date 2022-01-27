@@ -29,11 +29,33 @@ DWORD s_net_scanner::checkAliveReturn(string& ipAddr){
 	DWORD dwRet;
 	ULONG MacAddr[2] = { 0 };
 	ULONG PhysAddrLen = 6;
-
 	dwRet = SendARP(inet_addr(ipAddr.c_str()), 0, &MacAddr, &PhysAddrLen);
 	if (dwRet == NO_ERROR){
 		return 0;
 	}
 
 	return -1;
+}
+
+void s_net_scanner::getNetSession(string& ipAddr){
+	WNET_API wnetApi;
+	if (!s_net_scanner::checkAliveReturn(ipAddr)){
+		wstring serverName_ = string2Wstring(ipAddr);
+		wnetApi.getNetSession(serverName_);
+	}
+}
+
+void s_net_scanner::getNetShare(string& ipAddr){
+	WNET_API wnetApi;
+	if (!s_net_scanner::checkAliveReturn(ipAddr)){
+		wstring serverName_ = string2Wstring(ipAddr);
+		wnetApi.getNetShare(serverName_);
+	}
+}
+
+void s_net_scanner::getLoggedUsers(string& ipAddr){
+	WNET_API wnetApi;
+	if (!s_net_scanner::checkAliveReturn(ipAddr)){
+		wnetApi.getLoggedUsers(ipAddr);
+	}
 }
