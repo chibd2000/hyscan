@@ -27,7 +27,8 @@ enum IPC_ERROR{
 	IPC_PRIVILEGE_ERROR = 5,
 	IPC_NETWORK_ERROR = 67,
 	IPC_USER_PASS_ERROR = 1326,
-	IPC_PASS_EXPIRE = 2242
+	IPC_PASS_EXPIRE = 2242,
+	IPC_Credential_Conflict = 1219
 };
 	
 class WNET_API : public m_w_base_api

@@ -56,6 +56,7 @@ private:
 	string ldapServerAddr;
 	string domainName;
 	string baseDn;
+	string baseComputerName;
 	LDAP_TIMEVAL defaultTimeVal;
 	LDAPMessage* pLdapMessage;
 	LDAPMessage* pEntry;
@@ -65,11 +66,12 @@ public:
 	LDAP_API(string username, string password, string ldapServerAddr, string domainName);
 	~LDAP_API();
 	void init();
+	void initBaseDn();
+	void initBaseComputerName();
 	DWORD setLdapOption();
 	DWORD connect();
 	DWORD bind();
 	vector<string> LDAP_API::search(string filterGrammar, string dn, PCHAR searchAttabuite[]);
-	void initBaseDn();
 	string addComputer(string pcName);
 	string addComputerUac8192(string pcName);
 	void addDnsRecord(string dnsName, string ipName);

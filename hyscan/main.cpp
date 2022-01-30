@@ -279,14 +279,27 @@ int main(int argc, char* argv[]){
 				}
 			}
 			else if (cParser.get<string>("scantype") == "weakscan"){
+				
 				if (cParser.exist("dc") && cParser.exist("domainName") && cParser.exist("domainUsername") && cParser.exist("domainPassword")
 					&& cParser.exist("domainPersonalPassword")){
+					/*
+					string domainPassword = cParser.get<string>("domainPassword");
+					if (domainPassword == "null"){ domainPassword = ""; }
+					wstring dcipString = string2Wstring(cParser.get<string>("dc"));
+					string a = wchar2Char(L"nunsep01");
+					string b = cParser.get<string>("domainName");
+					string c = cParser.get<string>("domainUsername");
+					string d = domainPassword;
+					string e = cParser.get<string>("domainPersonalPassword");
+					WeakScanner::check(a, b, c, d, e);
+					*/
+
 					string domainPassword = cParser.get<string>("domainPassword");
 					if (domainPassword == "null"){domainPassword = "";}
 					m_multi_framework m_multi(cParser.get<int>("thread"));
 					wstring dcipString = string2Wstring(cParser.get<string>("dc"));
-					vector<wstring> vComputerMembers = WNET_API::getDomainGroupMembers(dcipString.c_str(), L"Domain Computers");
-					vector<wstring> vControllerMembers = WNET_API::getDomainGroupMembers(dcipString.c_str(), L"Domain Controllers");
+					vector<wstring> vComputerMembers = WNET_API::getDomainGroupMembers(dcipString, L"Domain Computers");
+					vector<wstring> vControllerMembers = WNET_API::getDomainGroupMembers(dcipString, L"Domain Controllers");
 					vector<wstring> vMembers;
 					vMembers.insert(vMembers.end(), vComputerMembers.begin(), vComputerMembers.end());
 					vMembers.insert(vMembers.end(), vControllerMembers.begin(), vControllerMembers.end());					

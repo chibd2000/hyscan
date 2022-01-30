@@ -51,21 +51,21 @@ DWORD WNET_API::openConnectByUserPass(string serverName, string username, string
 		this->closeConnection(fmtRemoteName);
 		break;
 	case IPC_PRIVILEGE_ERROR:
-		printf("[-] %s The privilege wrong\n", netResource.lpRemoteName);
+		printf("[-] %s The Privilege wrong, but it can Successed\n", netResource.lpRemoteName);
 		break;
 
 	case IPC_NETWORK_ERROR:
-		printf("[-] %s The network name could not be found\n", netResource.lpRemoteName);
+		printf("[-] %s The Network name could not be found\n", netResource.lpRemoteName);
 		break;
-
+	case IPC_Credential_Conflict:
+		printf("[-] %s The Credential is conflict, but it can successed\n", netResource.lpRemoteName);
+		break;
 	case IPC_USER_PASS_ERROR:
 		printf("[-] %s The username or password is incorrect\n", netResource.lpRemoteName);
 		break;
-
 	case IPC_PASS_EXPIRE:
-		printf("[-] %s The password is expired, please use smbpasswd.\n", netResource.lpRemoteName);
+		printf("[-] %s The password is expired, please use smbpasswd\n", netResource.lpRemoteName);
 		break;
-
 	default:
 		//printf("[-] %s WNetAddConnection2 failed with error %d\n", netResource.lpRemoteName, GetLastError());
 		break;
@@ -266,7 +266,7 @@ vector<wstring> WNET_API::getLocalGroupMembers(wstring serverName, wstring group
 	DWORD dwTotalentries;						//指向一个值的值，该值接收可能已从当前简历位置枚举的条目总数
 	vector<wstring> membersList;
 	DWORD dwRet;
-	dwRet = NetLocalGroupGetMembers(serverName.c_str(),
+	dwRet = NetLocalGroupGetMembers(serverName.c_str(), 
 		groupName.c_str(), 2, (LPBYTE*)&pGroupInfo, dwPrefmaxlen, &dwEntriesRead, &dwTotalentries, NULL);
 	if (dwRet == NO_ERROR)
 	{
@@ -276,7 +276,7 @@ vector<wstring> WNET_API::getLocalGroupMembers(wstring serverName, wstring group
 		}
 		// cout << endl;
 	}else{
-		printf("[-] WNET_API::NetLocalGroupGetMembers Error, The Error is %d\n", dwRet);
+		printf("[-] %s WNET_API::NetLocalGroupGetMembers Error, The Error is %d\n", serverName.data(), dwRet);
 	}
 	return membersList;
 }
@@ -310,7 +310,7 @@ vector<wstring> WNET_API::getDomainGroupMembers(wstring serverName, wstring grou
 	}
 	else
 	{
-		printf("[-] WNET_API::NetGroupGetUsers Error, The Error is %d\n", dwRet);
+		printf("[-] %s WNET_API::NetGroupGetUsers Error, The Error is %d\n", serverName.data(), dwRet);
 		exit(-1);
 	}
 }

